@@ -1,6 +1,7 @@
 plugins {
-    alias(libs.plugins.android.application)
+    id("com.android.application")
     alias(libs.plugins.kotlin.android)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -39,6 +40,9 @@ dependencies {
 
     implementation("androidx.viewpager2:viewpager2:1.0.0")
     implementation("com.airbnb.android:lottie:6.0.0")
+    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
+    implementation("com.google.firebase:firebase-analytics")
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

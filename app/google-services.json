@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "830170928284",
+    "project_id": "sleeptracker-3b7ce",
+    "storage_bucket": "sleeptracker-3b7ce.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:830170928284:android:1cc13e9c927bc2b0504959",
+        "android_client_info": {
+          "package_name": "com.example.sleeptrackerapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTnb5dDObn_zNE3eGbQTHIC2Fq4PQgab0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
