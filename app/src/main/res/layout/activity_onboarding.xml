@@ -40,22 +40,22 @@
 
             <View
                 android:id="@+id/dot1"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
                 android:layout_margin="4dp"
                 android:background="@drawable/dot_active"/>
 
             <View
                 android:id="@+id/dot2"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
                 android:layout_margin="4dp"
                 android:background="@drawable/dot_inactive"/>
 
             <View
                 android:id="@+id/dot3"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
                 android:layout_margin="4dp"
                 android:background="@drawable/dot_inactive"/>
         </LinearLayout>

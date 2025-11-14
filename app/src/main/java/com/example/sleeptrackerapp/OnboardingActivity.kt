@@ -8,15 +8,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.airbnb.lottie.LottieAnimationView // Import pour Lottie
+import com.airbnb.lottie.LottieAnimationView
 import com.airbnb.lottie.LottieDrawable
 
-// Data class mise à jour pour utiliser une ressource Lottie (raw)
 data class OnboardingItem(
     val lottieRes: Int,
     val title: String,
@@ -32,21 +30,19 @@ class OnboardingActivity : AppCompatActivity() {
     private lateinit var dot2: View
     private lateinit var dot3: View
 
-    // Utilisez R.raw.NOM_DU_FICHIER_JSON pour Lottie
-    // NOTE : Assurez-vous d'avoir les fichiers sleep_benefits.json, tracking.json, goals.json dans res/raw
     private val onboardingItems = listOf(
         OnboardingItem(
-            R.raw.sleep_benefits, // Remplacer par R.raw.votre_fichier_1
+            R.raw.sleep_benefits,
             "Pourquoi suivre son sommeil ?",
             "Améliorez votre santé et votre bien-être en comprenant vos habitudes de sommeil. Un bon sommeil booste votre énergie et votre concentration."
         ),
         OnboardingItem(
-            R.raw.tracking, // Remplacer par R.raw.votre_fichier_2
+            R.raw.tracking,
             "Enregistrement automatique",
             "Suivez votre sommeil automatiquement ou manuellement. Notre application détecte vos cycles de sommeil et analyse leur qualité."
         ),
         OnboardingItem(
-            R.raw.goals, // Remplacer par R.raw.votre_fichier_3
+            R.raw.goals,
             "Rappels & Objectifs",
             "Définissez vos objectifs de sommeil personnalisés et recevez des rappels pour maintenir une routine saine et régulière."
         )
@@ -63,7 +59,6 @@ class OnboardingActivity : AppCompatActivity() {
         dot2 = findViewById(R.id.dot2)
         dot3 = findViewById(R.id.dot3)
 
-        // Setup ViewPager
         viewPager.adapter = OnboardingAdapter(onboardingItems)
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -72,11 +67,9 @@ class OnboardingActivity : AppCompatActivity() {
             }
         })
 
-        // Initialisation des dots pour la première page
         updateDots(0)
         updateButtons(0)
 
-        // Button Next/Start
         btnNext.setOnClickListener {
             if (viewPager.currentItem < onboardingItems.size - 1) {
                 viewPager.currentItem += 1
@@ -85,7 +78,6 @@ class OnboardingActivity : AppCompatActivity() {
             }
         }
 
-        // Button Skip
         btnSkip.setOnClickListener {
             finishOnboarding()
         }
@@ -98,7 +90,6 @@ class OnboardingActivity : AppCompatActivity() {
         }
     }
 
-    // Animation de mise à l'échelle pour l'indicateur actif
     private fun animateDot(dot: View, isActive: Boolean) {
         val scaleValue = if (isActive) 1.5f else 1f
 
@@ -127,11 +118,9 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun finishOnboarding() {
-        // Sauvegarder que l'onboarding est terminé
         val prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE)
         prefs.edit().putBoolean("onboarding_completed", true).apply()
 
-        // Aller vers MainActivity
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
@@ -139,7 +128,6 @@ class OnboardingActivity : AppCompatActivity() {
     }
 }
 
-// Adapter pour ViewPager2
 class OnboardingAdapter(private val items: List<OnboardingItem>) :
     RecyclerView.Adapter<OnboardingAdapter.OnboardingViewHolder>() {
 
