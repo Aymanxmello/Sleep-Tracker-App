@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.airbnb.lottie.LottieAnimationView // Import pour Lottie
+import com.airbnb.lottie.LottieDrawable
 
 // Data class mise à jour pour utiliser une ressource Lottie (raw)
 data class OnboardingItem(
@@ -162,7 +163,8 @@ class OnboardingAdapter(private val items: List<OnboardingItem>) :
         fun bind(item: OnboardingItem) {
             // Configuration Lottie
             lottieAnimationView.setAnimation(item.lottieRes)
-            lottieAnimationView.repeatCount = LottieAnimationView.INFINITE
+            lottieAnimationView.repeatCount = LottieDrawable.INFINITE
+            lottieAnimationView.repeatMode = LottieDrawable.RESTART // <-- ADD THIS LINE
             lottieAnimationView.playAnimation()
 
             title.text = item.title
