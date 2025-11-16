@@ -5,4 +5,7 @@
     <color name="indigo">#818CF8</color>
     <color name="white">#FFFFFF</color>
     <color name="blue_glass">#6060A5FA</color>
+    <color name="icon_unselected">#88FFFFFF</color>
+    <color name="purple_primary">#8B5CF6</color>
+    <color name="purple_secondary">#6366F1</color>
 </resources>

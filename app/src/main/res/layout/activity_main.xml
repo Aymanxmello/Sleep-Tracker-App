@@ -1,19 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:paddingBottom="24dp">
 
-    <TextView
+    <FrameLayout
+        android:id="@+id/navContainer"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
+        android:layout_height="70dp"
+        android:elevation="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- GLOWING CIRCLE (BEHIND) -->
+        <LinearLayout
+            android:id="@+id/selectedBackground"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/selected_background"
+            android:orientation="horizontal"
+            android:translationZ="0dp" />
+
+        <!-- FOREGROUND ICONS -->
+        <LinearLayout
+            android:id="@+id/navBar"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingHorizontal="22dp"
+            android:background="@drawable/nav_bg"
+            android:elevation="10dp">
+
+            <ImageView
+                android:id="@+id/moonIcon"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:padding="16dp"
+                android:src="@drawable/menu"/>
+
+            <ImageView
+                android:id="@+id/bellIcon"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:padding="16dp"
+                android:src="@drawable/target"/>
+
+            <ImageView
+                android:id="@+id/musicIcon"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:padding="10dp"
+                android:src="@drawable/idea"/>
+
+            <ImageView
+                android:id="@+id/statsIcon"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:padding="16dp"
+                android:src="@drawable/user"/>
+        </LinearLayout>
+
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
