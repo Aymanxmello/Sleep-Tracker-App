@@ -4,6 +4,11 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+kotlin {
+    jvmToolchain(21)
+}
+
+
 android {
     namespace = "com.example.sleeptrackerapp"
     compileSdk = 36
@@ -21,42 +26,30 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
         }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
     }
 }
 
 dependencies {
 
-    // Utilisation des versions du catalogue TOML
-    implementation("androidx.viewpager2:viewpager2:${libs.versions.viewpager2.get()}") // Utilise la version 1.1.0
-    implementation("com.airbnb.android:lottie:${libs.versions.lottie.get()}")       // Utilise la version 6.7.1
-
-    // Déclaration de la BOM en utilisant le catalogue
+    // Firebase BOM
     implementation(platform("com.google.firebase:firebase-bom:${libs.versions.firebaseBom.get()}"))
 
-    // Retour à la syntaxe simple pour que la BOM gère les versions
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.firebase:firebase-firestore-ktx")
+    // Firebase products (NO VERSIONS HERE)
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
 
+    // Other dependencies
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.navigation.fragment)
-    implementation(libs.firebase.auth.ktx)
+    implementation("androidx.viewpager2:viewpager2:${libs.versions.viewpager2.get()}")
+    implementation("com.airbnb.android:lottie:${libs.versions.lottie.get()}")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
