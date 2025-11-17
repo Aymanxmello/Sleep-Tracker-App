@@ -20,7 +20,7 @@ class SplashActivity : AppCompatActivity() {
             val onboardingCompleted = prefs.getBoolean("onboarding_completed", false)
 
             val intent = if (onboardingCompleted) {
-                Intent(this, MainActivity::class.java)
+                Intent(this, LoginActivity::class.java) // Navigates to LoginActivity if onboarding is complete
             } else {
                 Intent(this, OnboardingActivity::class.java)
             }

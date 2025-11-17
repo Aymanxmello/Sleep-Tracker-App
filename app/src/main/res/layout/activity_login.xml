@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/gradient_background"
+    android:background="#0A0A0F"
     android:padding="32dp">
 
     <TextView
@@ -11,51 +11,46 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Connexion"
-        android:textColor="@color/white"
+        android:textColor="#B4B0FF"
         android:textSize="32sp"
-        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.02"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="64dp"/>
+        android:layout_marginTop="100dp"/>
 
     <LinearLayout
         android:id="@+id/input_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@drawable/glass_background"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="40dp"
         app:layout_constraintTop_toBottomOf="@id/title_login">
 
         <EditText
             android:id="@+id/et_email"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="56dp"
             android:hint="Email"
-            android:textColorHint="@color/icon_unselected"
-            android:textColor="@color/white"
+            android:textColorHint="#5A5A6B"
+            android:textColor="#FFFFFF"
             android:inputType="textEmailAddress"
-            android:backgroundTint="@color/white"
-            android:drawableStart="@drawable/ic_bell"
-            android:drawablePadding="12dp"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"/>
+            android:background="@drawable/input_background"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"/>
 
         <EditText
             android:id="@+id/et_password"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="56dp"
             android:layout_marginTop="16dp"
             android:hint="Mot de passe"
-            android:textColorHint="@color/icon_unselected"
-            android:textColor="@color/white"
+            android:textColorHint="#5A5A6B"
+            android:textColor="#FFFFFF"
             android:inputType="textPassword"
-            android:backgroundTint="@color/white"
-            android:drawableStart="@drawable/ic_stats"
-            android:drawablePadding="12dp"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"/>
+            android:background="@drawable/input_background"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"/>
 
         <TextView
             android:id="@+id/tv_forgot_password"
@@ -63,10 +58,77 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Mot de passe oublié ?"
-            android:textColor="@color/white"
+            android:textColor="#FFFFFF"
             android:layout_gravity="end"
             android:clickable="true"
-            android:focusable="true"/>
+            android:focusable="true"
+            android:textSize="14sp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/divider_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/input_container">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            android:background="#2A2A3A"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Or"
+            android:textColor="#5A5A6B"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textSize="14sp"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            android:background="#2A2A3A"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/social_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/divider_container">
+
+        <ImageButton
+            android:id="@+id/btn_google"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_google"
+            android:background="@drawable/social_button_background"
+            android:scaleType="centerInside"
+            android:padding="16dp"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="Continue with Google"/>
+
+        <ImageButton
+            android:id="@+id/btn_apple"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_apple"
+            android:background="@drawable/social_button_background"
+            android:scaleType="centerInside"
+            android:padding="16dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="Continue with Apple"/>
 
     </LinearLayout>
 
@@ -75,22 +137,41 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:text="Se connecter"
-        android:textSize="18sp"
-        android:textStyle="bold"
+        android:textSize="16sp"
+        android:fontFamily="sans-serif-medium"
         android:textColor="@color/white"
-        android:background="@drawable/button_rounded"
+        android:background="@drawable/primary_button_background"
         android:layout_marginTop="32dp"
-        app:layout_constraintTop_toBottomOf="@id/input_container"/>
+        android:textAllCaps="false"
+        app:layout_constraintTop_toBottomOf="@id/social_buttons"/>
 
-    <TextView
-        android:id="@+id/tv_go_to_register"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Pas encore de compte ? S'inscrire"
-        android:textColor="@color/white"
+        android:orientation="horizontal"
         android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_login" />
+        app:layout_constraintTop_toBottomOf="@id/btn_login">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pas encore de compte ?"
+            android:textColor="#5A5A6B"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/tv_go_to_register"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" S'inscrire"
+            android:textColor="#B4B0FF"
+            android:textSize="14sp"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="sans-serif-medium"/>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
