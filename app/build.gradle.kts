@@ -38,11 +38,17 @@ android {
 
 dependencies {
 
-    implementation("androidx.viewpager2:viewpager2:1.0.0")
-    implementation("com.airbnb.android:lottie:6.0.0")
-    implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
-    implementation("com.google.firebase:firebase-analytics")
+    // Utilisation des versions du catalogue TOML
+    implementation("androidx.viewpager2:viewpager2:${libs.versions.viewpager2.get()}") // Utilise la version 1.1.0
+    implementation("com.airbnb.android:lottie:${libs.versions.lottie.get()}")       // Utilise la version 6.7.1
 
+    // Déclaration de la BOM en utilisant le catalogue
+    implementation(platform("com.google.firebase:firebase-bom:${libs.versions.firebaseBom.get()}"))
+
+    // Retour à la syntaxe simple pour que la BOM gère les versions
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -50,6 +56,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.navigation.fragment)
+    implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
