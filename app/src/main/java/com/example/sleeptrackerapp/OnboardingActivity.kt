@@ -121,7 +121,8 @@ class OnboardingActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE)
         prefs.edit().putBoolean("onboarding_completed", true).apply()
 
-        val intent = Intent(this, MainActivity::class.java)
+        // CHANGE: Navigate to LoginActivity after onboarding
+        val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
         finish()
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)

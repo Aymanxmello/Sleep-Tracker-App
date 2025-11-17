@@ -1,15 +1,21 @@
 package com.example.sleeptrackerapp
 
 import android.animation.ValueAnimator
+import android.content.Intent
 import android.os.Bundle
 import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
 
+    private lateinit var auth: FirebaseAuth
     private lateinit var navBar: LinearLayout
     private lateinit var selectedBackground: LinearLayout
 
@@ -18,11 +24,22 @@ class MainActivity : AppCompatActivity() {
     private lateinit var musicIcon: ImageView
     private lateinit var statsIcon: ImageView
 
-    private var selectedPosition = 2  // Default: Music icon selected
+    // Map fragments to positions: 0=Dashboard, 1=Goals, 2=Tips, 3=Account
+    private val fragments = listOf(
+        DashboardFragment.newInstance(),
+        GoalsFragment.newInstance(),
+        TipsFragment.newInstance(),
+        AccountFragment.newInstance()
+    )
+
+    private var selectedPosition = 2  // Default: Music icon (Tips Fragment) selected
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Initialisation de Firebase
+        auth = Firebase.auth
 
         // Connect views
         navBar = findViewById(R.id.navBar)
@@ -35,7 +52,12 @@ class MainActivity : AppCompatActivity() {
 
         setupClickListeners()
 
-        // Move glowing background to default item
+        // 3. Set the initial fragment and move background
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, fragments[selectedPosition])
+            .commit()
+
+        // Move glowing background to default item (needs to be posted to get correct measurements)
         musicIcon.post {
             moveBackgroundTo(musicIcon, animate = false)
             updateIconColors()
@@ -51,6 +73,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun onIconClick(position: Int, icon: ImageView) {
         if (position != selectedPosition) {
+
+            // 4. Switch Fragment Content
+            switchFragment(position)
 
             // Bounce animation on tap
             icon.animate()
@@ -72,13 +97,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun switchFragment(position: Int) {
+        val nextFragment = fragments[position]
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, nextFragment)
+            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+            .commit()
+    }
+
     private fun updateIconColors() {
         val icons = listOf(moonIcon, bellIcon, musicIcon, statsIcon)
 
         icons.forEachIndexed { index, icon ->
             if (index == selectedPosition) {
+                // Set active color to white
                 icon.setColorFilter(ContextCompat.getColor(this, android.R.color.white))
             } else {
+                // Set inactive color (R.color.icon_unselected)
                 icon.setColorFilter(ContextCompat.getColor(this, R.color.icon_unselected))
             }
         }
@@ -101,4 +136,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // 2. Implementation of the LogoutListener method
+    override fun onLogoutClicked() {
+        auth.signOut() // Sign out the user from Firebase
+
+        // Navigate back to LoginActivity and clear the activity stack
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
+        Toast.makeText(this, "Déconnexion réussie.", Toast.LENGTH_SHORT).show()
+    }
 }
