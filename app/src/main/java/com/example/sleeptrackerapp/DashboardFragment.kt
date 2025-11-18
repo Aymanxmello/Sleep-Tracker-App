@@ -2,7 +2,8 @@ package com.example.sleeptrackerapp
 
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.view.View
+import androidx.fragment.app.Fragment // Extends Fragment now, from the previous fix
 import com.example.sleeptrackerapp.R
 import com.example.sleeptrackerapp.SleepTrackingDialogFragment
 import com.github.mikephil.charting.charts.BarChart
@@ -13,24 +14,25 @@ import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class DashboardFragment : AppCompatActivity() {
+// CORRECTED: Extends Fragment and implements the new listener interface
+class DashboardFragment : Fragment(R.layout.fragment_dashboard),
+    SleepTrackingDialogFragment.SleepDataUpdateListener {
 
     private lateinit var sleepChart: BarChart
     private lateinit var fabAddSleep: FloatingActionButton
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.fragment_dashboard)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        initializeViews()
+        initializeViews(view)
         setupSleepChart()
         setupClickListeners()
         updateSleepData()
     }
 
-    private fun initializeViews() {
-        sleepChart = findViewById(R.id.sleep_chart)
-        fabAddSleep = findViewById(R.id.fab_add_sleep)
+    private fun initializeViews(view: View) {
+        sleepChart = view.findViewById(R.id.sleep_chart)
+        fabAddSleep = view.findViewById(R.id.fab_add_sleep)
     }
 
     private fun setupSleepChart() {
@@ -68,7 +70,7 @@ class DashboardFragment : AppCompatActivity() {
         sleepChart.legend.isEnabled = false
     }
 
-    private fun updateSleepData() {
+    fun updateSleepData() {
         // Données d'exemple pour la semaine
         val sleepEntries = ArrayList<BarEntry>()
         sleepEntries.add(BarEntry(0f, 7.25f))  // Lundi: 7h15
@@ -106,7 +108,18 @@ class DashboardFragment : AppCompatActivity() {
     private fun showAddSleepDialog() {
         // Implémentation de la boîte de dialogue pour ajouter une session de sommeil
         val dialog = SleepTrackingDialogFragment()
-        dialog.show(supportFragmentManager, "SleepTrackingDialog")
+        // CORRECTED: Set this fragment as the target to receive the callback
+        dialog.setTargetFragment(this, 0)
+        dialog.show(requireActivity().supportFragmentManager, "SleepTrackingDialog")
+    }
+
+    // NEW: Implementation of the interface method to update UI on success
+    override fun onSleepEntryAdded() {
+        // This method is called from the dialog after successful saving
+        updateSleepData()
+    }
+
+    companion object {
+        fun newInstance() = DashboardFragment()
     }
 }
-

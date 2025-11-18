@@ -12,8 +12,16 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import java.text.SimpleDateFormat
 import java.util.*
+// Import for ColorStateList
+import android.content.res.ColorStateList
+import androidx.core.content.ContextCompat // Added for safer color getting
 
 class SleepTrackingDialogFragment : DialogFragment() {
+
+    // 1. Define the Listener Interface for sending data back to the hosting Fragment
+    interface SleepDataUpdateListener {
+        fun onSleepEntryAdded()
+    }
 
     private lateinit var etSleepDuration: TextInputEditText
     private lateinit var spinnerSleepQuality: Spinner
@@ -47,6 +55,7 @@ class SleepTrackingDialogFragment : DialogFragment() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
+        // Ensure dialog has a transparent background to use the custom background
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
 
@@ -63,6 +72,7 @@ class SleepTrackingDialogFragment : DialogFragment() {
 
     private fun setupSpinner() {
         val qualityOptions = arrayOf("Excellente", "Bonne", "Moyenne", "Mauvaise", "Très mauvaise")
+        // Use requireActivity() or requireContext() for a safer context
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, qualityOptions)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerSleepQuality.adapter = adapter
@@ -90,7 +100,10 @@ class SleepTrackingDialogFragment : DialogFragment() {
     private fun startSleepTracking() {
         isTracking = true
         btnStartManual.text = "Arrêter le suivi"
-        btnStartManual.setBackgroundColor(requireContext().getColor(android.R.color.holo_red_dark))
+
+        // FIX: Use setBackgroundTintList with a ColorStateList for MaterialButton
+        val redColor = ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
+        btnStartManual.backgroundTintList = ColorStateList.valueOf(redColor)
 
         // Démarrer le timer
         startTimer()
@@ -106,7 +119,11 @@ class SleepTrackingDialogFragment : DialogFragment() {
     private fun stopSleepTracking() {
         isTracking = false
         btnStartManual.text = "Démarrer le suivi"
-        btnStartManual.setBackgroundColor(requireContext().getColor(R.color.purple_primary))
+
+        // FIX: Use setBackgroundTintList with a ColorStateList for MaterialButton
+        // Get the purple_primary color from your resources
+        val purpleColor = ContextCompat.getColor(requireContext(), R.color.purple_primary)
+        btnStartManual.backgroundTintList = ColorStateList.valueOf(purpleColor)
 
         // Arrêter le timer
         stopTimer()
@@ -180,8 +197,8 @@ class SleepTrackingDialogFragment : DialogFragment() {
         editor.putString("last_sleep_quality", quality)
         editor.apply()
 
-        // Notifier le Dashboard pour mettre à jour l'UI
-        (activity as? DashboardActivity)?.updateSleepData()
+        // Notify the target fragment to update its UI
+        (targetFragment as? SleepDataUpdateListener)?.onSleepEntryAdded()
     }
 
     private fun updateCurrentTime() {
