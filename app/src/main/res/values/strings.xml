@@ -3,4 +3,12 @@
     <string name="app_subtitle">Suivez votre sommeil</string>
     <string name="app_logo">Logo de l\'application</string>
     <string name="background_desc">Image de fond</string>
+    <string name="dashboard" translatable="false">Tableau de bord</string>
+    <string name="sleep_score" translatable="false">Sleep score</string>
+    <string name="time_in_bed" translatable="false">Time in bed:</string>
+    <string name="time_asleep" translatable="false">Time Asleep:</string>
+    <string name="deep_sleep" translatable="false">Deep Sleep</string>
+    <string name="light_sleep" translatable="false">Light Sleep</string>
+    <string name="awake" translatable="false">Awake</string>
+    <string name="insights" translatable="false">💡 Insights</string>
 </resources>

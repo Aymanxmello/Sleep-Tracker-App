@@ -8,4 +8,11 @@
     <color name="icon_unselected">#88FFFFFF</color>
     <color name="purple_primary">#8B5CF6</color>
     <color name="purple_secondary">#6366F1</color>
+    <color name="dark_blue_primary">#0A1C3F</color>
+    <color name="dark_blue_secondary">#0F2C57</color>
+    <color name="dark_blue_tertiary">#1A3A6A</color>
+    <color name="cyan_accent">#5DE0E6</color>
+    <color name="purple_accent">#9B5DE5</color>
+    <color name="text_secondary">#9DB4D1</color>
+    <color name="black">#000000</color>
 </resources>

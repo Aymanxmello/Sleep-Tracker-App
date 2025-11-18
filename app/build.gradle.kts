@@ -25,9 +25,15 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
+
 }
 
 dependencies {
@@ -39,6 +45,9 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    // Ajout du support KTX pour Firebase Auth (simplifie l'accès à l'utilisateur)
+    implementation("com.google.firebase:firebase-auth-ktx:23.2.1")
+
 
     // Other dependencies
     implementation(libs.androidx.core.ktx)
@@ -50,7 +59,19 @@ dependencies {
     implementation("androidx.viewpager2:viewpager2:${libs.versions.viewpager2.get()}")
     implementation("com.airbnb.android:lottie:${libs.versions.lottie.get()}")
 
+
+
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
+    implementation("com.google.android.material:material:1.9.0")
+    implementation("androidx.cardview:cardview:1.0.0")
+
+
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+
 }
