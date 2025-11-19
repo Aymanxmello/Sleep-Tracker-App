@@ -10,7 +10,7 @@
         android:id="@+id/title_tips"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Conseils sommeil"
+        android:text="@string/sleep_tips_title"
         android:textColor="#B4B0FF"
         android:textSize="32sp"
         android:fontFamily="sans-serif-medium"

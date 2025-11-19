@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0A0A0F">
@@ -19,7 +20,7 @@
                 android:id="@+id/title_dashboard"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tableau de bord"
+                android:text="@string/menu_dashboard"
                 android:textColor="#B4B0FF"
                 android:textSize="32sp"
                 android:fontFamily="sans-serif-medium"
@@ -47,7 +48,7 @@
                     android:id="@+id/tv_selected_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Date"
+                    tools:text="Date"
                     android:textColor="@color/white"
                     android:textSize="26sp"
                     android:textStyle="bold"
@@ -63,7 +64,7 @@
                         android:id="@+id/tv_temperature"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="--°C"
+                        tools:text="--°C"
                         android:textColor="@color/cyan_accent"
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-medium" />
@@ -79,7 +80,7 @@
                         android:id="@+id/tv_sunset_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🌅 --:--"
+                        tools:text="🌅 --:--"
                         android:textColor="#9DB4D1"
                         android:textSize="16sp"/>
 
@@ -94,7 +95,7 @@
                         android:id="@+id/tv_sunrise_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🌄 --:--"
+                        tools:text="🌄 --:--"
                         android:textColor="#9DB4D1"
                         android:textSize="16sp"/>
                 </LinearLayout>
@@ -118,14 +119,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Moyenne"
+                        android:text="@string/kpi_average"
                         android:textColor="#5A5A6B"
                         android:textSize="12sp"/>
                     <TextView
                         android:id="@+id/tv_kpi_average"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="--h --m"
+                        tools:text="--h --m"
                         android:textColor="#FFFFFF"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -141,14 +142,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Meilleure"
+                        android:text="@string/kpi_best"
                         android:textColor="#5A5A6B"
                         android:textSize="12sp"/>
                     <TextView
                         android:id="@+id/tv_kpi_best"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="--%"
+                        tools:text="--%"
                         android:textColor="@color/cyan_accent"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -164,14 +165,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Pire"
+                        android:text="@string/kpi_worst"
                         android:textColor="#5A5A6B"
                         android:textSize="12sp"/>
                     <TextView
                         android:id="@+id/tv_kpi_worst"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="--%"
+                        tools:text="--%"
                         android:textColor="#FF6B6B"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -197,7 +198,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Dernière nuit"
+                        android:text="@string/last_night_label"
                         android:textColor="#B4B0FF"
                         android:textSize="18sp"
                         android:fontFamily="sans-serif-medium"
@@ -211,14 +212,14 @@
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:text="--h --m"
+                            tools:text="--h --m"
                             android:textColor="#FFFFFF"
                             android:textSize="20sp"/>
                         <TextView
                             android:id="@+id/tv_sleep_quality"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="--"
+                            tools:text="--"
                             android:textColor="#FFFFFF"
                             android:textSize="20sp"/>
                     </LinearLayout>
@@ -244,7 +245,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Durée de sommeil (Semaine)"
+                        android:text="@string/chart_duration_title"
                         android:textColor="#B4B0FF"
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-medium"
@@ -276,7 +277,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Qualité du sommeil (%)"
+                        android:text="@string/chart_quality_title"
                         android:textColor="#B4B0FF"
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-medium"

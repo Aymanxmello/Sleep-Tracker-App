@@ -1,41 +1,105 @@
 <resources>
     <string name="app_name">Sleep Tracker</string>
-
     <string name="menu_dashboard">Tableau de bord</string>
     <string name="menu_goals">Objectifs</string>
     <string name="menu_account">Compte</string>
     <string name="title_account">Mon Compte</string>
-
     <string name="profile_section">Profil</string>
     <string name="daily_goal_label">Objectif quotidien</string>
     <string name="timezone_label">Fuseau horaire</string>
     <string name="settings_section">Paramètres</string>
-
     <string name="bedtime_reminder">Heure de coucher</string>
     <string name="wakeup_reminder">Heure de réveil</string>
     <string name="notifications_label">Notifications</string>
     <string name="reminders_enabled">Rappels activés</string>
     <string name="reminders_disabled">Rappels désactivés</string>
     <string name="permission_required">Permission requise pour les notifications</string>
-
     <string name="reminder_notification_title">Il est temps de dormir ! 🌙</string>
     <string name="reminder_notification_body">Préparez-vous à dormir. Éloignez les écrans.</string>
     <string name="wakeup_notification_title">Bonjour ! ☀️</string>
     <string name="wakeup_notification_body">C\'est l\'heure de se lever et de commencer la journée.</string>
-
     <string name="tracking_mode_label">Mode de suivi</string>
     <string name="tracking_mode_manual">Manuel</string>
     <string name="tracking_mode_auto">Auto</string>
-
     <string name="language_label">Langue</string>
     <string name="language_dialog_title">Choisir la langue</string>
     <string name="current_language_name">Français</string>
-
     <string name="export_csv">Exporter les données (CSV)</string>
     <string name="backup_encrypted">Sauvegarde locale (Chiffrée)</string>
     <string name="logout">Déconnexion</string>
-
     <string name="csv_generating">Génération du CSV...</string>
     <string name="backup_encrypting">Chiffrement de la sauvegarde...</string>
     <string name="error_export">Échec de l\'exportation</string>
+    <string name="background_desc">Image de fond</string>
+    <string name="app_subtitle">Suivez votre sommeil, améliorez votre vie</string>
+
+    <string name="login_title">Connexion</string>
+    <string name="register_title">Créer un compte</string>
+    <string name="reset_password_title">Réinitialiser le mot de passe</string>
+    <string name="reset_password_subtitle">Entrez votre email pour recevoir un lien de réinitialisation.</string>
+    <string name="username_hint">Nom d\'utilisateur</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Mot de passe</string>
+    <string name="forgot_password">Mot de passe oublié ?</string>
+    <string name="select_dob">Sélectionner Date de Naissance</string>
+    <string name="age_error">Vous devez avoir au moins 18 ans.</string>
+    <string name="or_divider">Ou</string>
+    <string name="btn_login">Se connecter</string>
+    <string name="btn_register">S\'inscrire</string>
+    <string name="btn_send_reset">Envoyer le lien</string>
+    <string name="no_account">Pas encore de compte ?</string>
+    <string name="already_have_account">Déjà un compte ?</string>
+    <string name="register_link">S\'inscrire</string>
+    <string name="login_link">Connectez-vous</string>
+
+    <string name="kpi_average">Moyenne</string>
+    <string name="kpi_best">Meilleure</string>
+    <string name="kpi_worst">Pire</string>
+    <string name="last_night_label">Dernière nuit</string>
+    <string name="chart_duration_title">Durée de sommeil (Semaine)</string>
+    <string name="chart_quality_title">Qualité du sommeil (%)</string>
+    <string name="date_format_display">d MMMM yyyy</string>
+
+    <string name="sleep_tracking_title">Suivi du sommeil</string>
+    <string name="current_time_label">Heure actuelle</string>
+    <string name="session_details">Détails de la session</string>
+    <string name="duration_hint">Durée (HH:MM)</string>
+    <string name="quality_excellent">Excellente</string>
+    <string name="quality_good">Bonne</string>
+    <string name="quality_average">Moyenne</string>
+    <string name="quality_poor">Mauvaise</string>
+    <string name="quality_very_poor">Très mauvaise</string>
+    <string name="btn_start_tracking">Démarrer le suivi</string>
+    <string name="btn_stop_tracking">Arrêter le suivi</string>
+    <string name="sensor_hint">Utilise les capteurs pour analyser la qualité</string>
+    <string name="btn_add_manual">Ajouter manuellement</string>
+    <string name="tracking_in_progress">Suivi en cours...</string>
+    <string name="time_elapsed">Temps écoulé : %s</string>
+    <string name="quality_detected">Qualité détectée : %s</string>
+
+    <string name="set_goal_title">Définir objectif</string>
+    <string name="goal_duration_hint">Objectif quotidien (ex: 8h)</string>
+    <string name="goal_quality_hint">Cible qualité (ex: 70%)</string>
+    <string name="btn_save">Enregistrer</string>
+    <string name="tracking_progress">Suivi</string>
+    <string name="goal_history">Historique</string>
+    <string name="status_reached">Atteint</string>
+    <string name="status_not_reached">Non atteint</string>
+    <string name="sleep_tips_title">Conseils sommeil</string>
+    <string name="tip_category_tip">CONSEIL</string>
+    <string name="tip_category_article">ARTICLE</string>
+    <string name="tip_category_video">VIDÉO</string>
+    <string name="btn_share">Partager</string>
+    <string name="btn_read_article">Lire l\'article</string>
+    <string name="btn_watch_video">Voir la vidéo</string>
+
+    <string name="onboarding_title_1">Pourquoi suivre son sommeil ?</string>
+    <string name="onboarding_desc_1">Améliorez votre santé et votre bien-être en comprenant vos habitudes de sommeil.</string>
+    <string name="onboarding_title_2">Enregistrement automatique</string>
+    <string name="onboarding_desc_2">Suivez votre sommeil automatiquement ou manuellement via les capteurs.</string>
+    <string name="onboarding_title_3">Rappels &amp; Objectifs</string>
+    <string name="onboarding_desc_3">Définissez vos objectifs personnalisés et recevez des rappels.</string>
+    <string name="btn_skip">Passer</string>
+    <string name="btn_next">Suivant</string>
+    <string name="btn_start">Commencer</string>
 </resources>

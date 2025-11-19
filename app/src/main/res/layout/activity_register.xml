@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0A0A0F"
@@ -11,7 +10,7 @@
         android:id="@+id/title_register"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Créer un compte"
+        android:text="@string/register_title"
         android:textColor="#B4B0FF"
         android:textSize="32sp"
         android:fontFamily="sans-serif-medium"
@@ -32,7 +31,7 @@
             android:id="@+id/et_username"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:hint="Nom d'utilisateur"
+            android:hint="@string/username_hint"
             android:textColorHint="#5A5A6B"
             android:textColor="#FFFFFF"
             android:inputType="textPersonName"
@@ -45,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="16dp"
-            android:hint="Email"
+            android:hint="@string/email_hint"
             android:textColorHint="#5A5A6B"
             android:textColor="#FFFFFF"
             android:inputType="textEmailAddress"
@@ -58,7 +57,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="16dp"
-            android:hint="Mot de passe"
+            android:hint="@string/password_hint"
             android:textColorHint="#5A5A6B"
             android:textColor="#FFFFFF"
             android:inputType="textPassword"
@@ -71,7 +70,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="16dp"
-            android:text="Sélectionner Date de Naissance"
+            android:text="@string/select_dob"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
             android:background="@drawable/input_background"
@@ -85,7 +84,7 @@
             android:textColor="#FF6B6B"
             android:textSize="12sp"
             android:visibility="gone"
-            android:text="Vous devez avoir au moins 18 ans pour vous inscrire."/>
+            android:text="@string/age_error"/>
 
     </LinearLayout>
 
@@ -107,7 +106,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Or"
+            android:text="@string/or_divider"
             android:textColor="#5A5A6B"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
@@ -159,7 +158,7 @@
         android:id="@+id/btn_register"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="S'inscrire"
+        android:text="@string/btn_register"
         android:textSize="16sp"
         android:fontFamily="sans-serif-medium"
         android:textColor="@color/white"
@@ -180,7 +179,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Déjà un compte ?"
+            android:text="@string/already_have_account"
             android:textColor="#5A5A6B"
             android:textSize="14sp"/>
 
@@ -188,11 +187,12 @@
             android:id="@+id/tv_go_to_login"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=" Connectez-vous"
+            android:text="@string/login_link"
             android:textColor="#B4B0FF"
             android:textSize="14sp"
             android:clickable="true"
             android:focusable="true"
+            android:layout_marginStart="4dp"
             android:fontFamily="sans-serif-medium"/>
 
     </LinearLayout>

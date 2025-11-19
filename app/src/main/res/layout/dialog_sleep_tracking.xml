@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -15,7 +16,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Suivi du sommeil"
+            android:text="@string/sleep_tracking_title"
             android:textColor="#B4B0FF"
             android:textSize="22sp"
             android:textStyle="bold"
@@ -37,7 +38,7 @@
         android:id="@+id/tv_current_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="00:00:00"
+        tools:text="00:00:00"
         android:textColor="#FFFFFF"
         android:textSize="32sp"
         android:textStyle="bold"
@@ -47,7 +48,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Heure actuelle"
+        android:text="@string/current_time_label"
         android:textColor="#5A5A6B"
         android:textSize="14sp"
         android:gravity="center"
@@ -64,7 +65,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Détails de la session"
+            android:text="@string/session_details"
             android:textColor="#9DB4D1"
             android:textSize="14sp"
             android:layout_marginBottom="12dp"/>
@@ -89,7 +90,7 @@
                     android:id="@+id/et_sleep_duration"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Durée (HH:MM)"
+                    android:hint="@string/duration_hint"
                     android:textColor="#FFFFFF"
                     android:inputType="datetime"
                     android:maxLines="1"/>
@@ -120,7 +121,7 @@
             android:id="@+id/btn_start_manual"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:text="Démarrer le suivi"
+            android:text="@string/btn_start_tracking"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -131,7 +132,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Utilise les capteurs pour analyser la qualité"
+            android:text="@string/sensor_hint"
             android:textColor="#5A5A6B"
             android:textSize="12sp"
             android:gravity="center"
@@ -148,7 +149,7 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="Ajouter manuellement"
+            android:text="@string/btn_add_manual"
             android:textColor="#B4B0FF"
             app:strokeColor="#B4B0FF"
             app:strokeWidth="1dp"
