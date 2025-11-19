@@ -1,6 +1,7 @@
 package com.example.sleeptrackerapp
 
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -28,9 +29,81 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+// ====================================================================
+// DÉFINITIONS MÉTÉO SIMPLIFIÉES ET INLINÉES
+// (Anciennement dans WeatherService.kt et WeatherModel.kt)
+// ====================================================================
+import retrofit2.http.GET
+import retrofit2.http.Query
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.Date
+import kotlin.math.abs
+
+// Top-level response for the One Call API
+data class OneCallResponse(
+    // Array contenant les prévisions quotidiennes
+    val daily: List<DailyWeather>,
+)
+
+// Représente les données météo pour une seule journée
+data class DailyWeather(
+    // Timestamp Unix pour la date (secondes)
+    val dt: Long,
+
+    // Timestamp Unix pour le lever du soleil (secondes)
+    val sunrise: Long,
+
+    // Timestamp Unix pour le coucher du soleil (secondes)
+    val sunset: Long,
+
+    // Objet température
+    val temp: Temp,
+)
+
+// Représente les données détaillées de température (nous utilisons 'day' pour l'affichage)
+data class Temp(
+    // Température de la journée
+    val day: Double,
+
+    // Température de la nuit
+    val night: Double,
+
+    // Température du soir
+    val eve: Double
+)
+
+interface WeatherService {
+
+    // Endpoint pour l'API One Call d'OpenWeatherMap
+    @GET("data/2.5/onecall?exclude=minutely,hourly,alerts&units=metric")
+    suspend fun fetchWeather(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+        @Query("appid") apiKey: String
+    ): OneCallResponse
+}
+
+// Client Retrofit
+object WeatherApiClient {
+    // URL de base de l'API OpenWeatherMap
+    private const val BASE_URL = "https://api.openweathermap.org/"
+
+    val service: WeatherService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(WeatherService::class.java)
+    }
+}
+// ====================================================================
+// FIN DES DÉFINITIONS MÉTÉO
+// ====================================================================
+
 // Helper function to convert Unix timestamp (seconds) to HH:mm string
 private fun convertUnixToTime(timestamp: Long): String {
-    val date = java.util.Date(timestamp * 1000) // Convert seconds to milliseconds
+    val date = Date(timestamp * 1000) // Convert seconds to milliseconds
     val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
     return formatter.format(date)
 }
@@ -182,14 +255,15 @@ class DashboardFragment : Fragment() {
     }
 
     // MODIFIÉ: Implémente la logique d'appel API asynchrone (OpenWeatherMap)
+    @SuppressLint("DefaultLocale", "SetTextI18n")
     private fun updateDayDisplay(dayItem: DayItem) {
         val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
         tvSelectedDate.text = dateFormat.format(dayItem.date.time)
 
         // PARAMÈTRES POUR L'API OWM
-        val API_KEY = "4cd29e7ea36ffeaef7cad09a75f90f6c" // Clé API insérée
-        val LATITUDE = 48.8566 // Latitude de Paris (Exemple)
-        val LONGITUDE = 2.3522 // Longitude de Paris
+        val API_KEY: String = "be59bd86a75aabbc2b8f06205ad19082" // Clé API insérée
+        val LATITUDE: Double = 48.8566 // Latitude de Paris (Exemple)
+        val LONGITUDE: Double = 2.3522 // Longitude de Paris
 
         // Afficher des marqueurs de chargement en attendant l'API
         tvTemperature.text = "..."
@@ -216,7 +290,7 @@ class DashboardFragment : Fragment() {
                 // Trouver les données météo qui correspondent au jour sélectionné.
                 // On utilise une marge de 24h (86400 secondes) pour la comparaison des dates.
                 val dailyData = response.daily.find { daily ->
-                    val dayDiff = Math.abs(daily.dt - selectedDayStartTimestamp)
+                    val dayDiff = abs(daily.dt - selectedDayStartTimestamp)
                     dayDiff < 86400
                 }
 
