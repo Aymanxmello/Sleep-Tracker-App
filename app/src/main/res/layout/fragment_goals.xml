@@ -1,6 +1,158 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#0A0A0F"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/title_goals"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Objectifs"
+        android:textColor="#B4B0FF"
+        android:textSize="32sp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.02"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="20dp"/>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/title_goals"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="80dp">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="#1A1A23"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                android:layout_marginBottom="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Définir objectif"
+                        android:textColor="#B4B0FF"
+                        android:textSize="18sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginBottom="16dp"/>
+
+                    <EditText
+                        android:id="@+id/et_goal_duration"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:hint="Objectif quotidien (ex: 8h)"
+                        android:textColorHint="#5A5A6B"
+                        android:textColor="#FFFFFF"
+                        android:inputType="number"
+                        android:background="@drawable/input_background"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="20dp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <EditText
+                        android:id="@+id/et_quality_target"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:hint="Cible qualité (ex: 70%)"
+                        android:textColorHint="#5A5A6B"
+                        android:textColor="#FFFFFF"
+                        android:inputType="number"
+                        android:background="@drawable/input_background"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="20dp"
+                        android:layout_marginBottom="16dp"/>
+
+                    <Button
+                        android:id="@+id/btn_save_goal"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Enregistrer"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/white"
+                        android:background="@drawable/primary_button_background"
+                        android:textAllCaps="false"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="#1A1A23"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                android:layout_marginBottom="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Suivi"
+                        android:textColor="#B4B0FF"
+                        android:textSize="18sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginBottom="12dp"/>
+
+                    <TextView
+                        android:id="@+id/tv_progress_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="75% de l’objectif atteint cette semaine"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <ProgressBar
+                        android:id="@+id/progress_bar_goals"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"
+                        android:progressDrawable="@drawable/custom_progress_bar"
+                        android:progress="75"
+                        android:max="100"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Historique"
+                android:textColor="#B4B0FF"
+                android:textSize="20sp"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginBottom="16dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_goal_history"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"/>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

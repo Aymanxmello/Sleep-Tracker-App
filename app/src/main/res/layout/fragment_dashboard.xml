@@ -12,7 +12,8 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:paddingBottom="100dp">
 
             <TextView
                 android:id="@+id/title_dashboard"
@@ -40,17 +41,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    android:clipToPadding="false"
-                    android:paddingStart="0dp"
-                    android:paddingEnd="16dp"
                     android:layout_marginBottom="24dp"/>
 
                 <TextView
                     android:id="@+id/tv_selected_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Novembre 19, 2025"
+                    android:text="Date"
                     android:textColor="@color/white"
                     android:textSize="26sp"
                     android:textStyle="bold"
@@ -60,21 +57,20 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
+                    android:gravity="center_vertical">
 
                     <TextView
                         android:id="@+id/tv_temperature"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="20°C"
+                        android:text="--°C"
                         android:textColor="@color/cyan_accent"
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-medium" />
 
                     <View
                         android:layout_width="1dp"
-                        android:layout_height="match_parent"
+                        android:layout_height="20dp"
                         android:background="#9DB4D1"
                         android:layout_marginStart="16dp"
                         android:layout_marginEnd="16dp"/>
@@ -83,13 +79,13 @@
                         android:id="@+id/tv_sunset_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🌅 17:30"
+                        android:text="🌅 --:--"
                         android:textColor="#9DB4D1"
                         android:textSize="16sp"/>
 
                     <View
                         android:layout_width="1dp"
-                        android:layout_height="match_parent"
+                        android:layout_height="20dp"
                         android:background="#9DB4D1"
                         android:layout_marginStart="16dp"
                         android:layout_marginEnd="16dp"/>
@@ -98,103 +94,141 @@
                         android:id="@+id/tv_sunrise_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🌄 07:45"
+                        android:text="🌄 --:--"
                         android:textColor="#9DB4D1"
                         android:textSize="16sp"/>
                 </LinearLayout>
-
             </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/kpi_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="32dp"
+                android:weightSum="3"
+                app:layout_constraintTop_toBottomOf="@id/date_weather_container">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Moyenne"
+                        android:textColor="#5A5A6B"
+                        android:textSize="12sp"/>
+                    <TextView
+                        android:id="@+id/tv_kpi_average"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--h --m"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="4dp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Meilleure"
+                        android:textColor="#5A5A6B"
+                        android:textSize="12sp"/>
+                    <TextView
+                        android:id="@+id/tv_kpi_best"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--%"
+                        android:textColor="@color/cyan_accent"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="4dp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Pire"
+                        android:textColor="#5A5A6B"
+                        android:textSize="12sp"/>
+                    <TextView
+                        android:id="@+id/tv_kpi_worst"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--%"
+                        android:textColor="#FF6B6B"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="4dp"/>
+                </LinearLayout>
+            </LinearLayout>
+
             <androidx.cardview.widget.CardView
                 android:id="@+id/daily_summary_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="24dp"
                 app:cardBackgroundColor="#1A1A23"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
-                app:layout_constraintTop_toBottomOf="@id/date_weather_container">
+                app:layout_constraintTop_toBottomOf="@id/kpi_container">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="20dp">
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Résumé de la nuit dernière"
+                        android:text="Dernière nuit"
                         android:textColor="#B4B0FF"
                         android:textSize="18sp"
                         android:fontFamily="sans-serif-medium"
-                        android:layout_marginBottom="16dp"/>
-
+                        android:layout_marginBottom="12dp"/>
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:weightSum="2">
-
-                        <LinearLayout
+                        android:orientation="horizontal">
+                        <TextView
+                            android:id="@+id/tv_sleep_duration"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Durée"
-                                android:textColor="#5A5A6B"
-                                android:textSize="14sp"
-                                android:layout_marginBottom="4dp"/>
-
-                            <TextView
-                                android:id="@+id/tv_sleep_duration"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="7h 15m"
-                                android:textColor="#FFFFFF"
-                                android:textSize="20sp"
-                                android:fontFamily="sans-serif-medium"/>
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Qualité"
-                                android:textColor="#5A5A6B"
-                                android:textSize="14sp"
-                                android:layout_marginBottom="4dp"/>
-
-                            <TextView
-                                android:id="@+id/tv_sleep_quality"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Bonne"
-                                android:textColor="#FFFFFF"
-                                android:textSize="20sp"
-                                android:fontFamily="sans-serif-medium"/>
-
-                        </LinearLayout>
-
+                            android:text="--h --m"
+                            android:textColor="#FFFFFF"
+                            android:textSize="20sp"/>
+                        <TextView
+                            android:id="@+id/tv_sleep_quality"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--"
+                            android:textColor="#FFFFFF"
+                            android:textSize="20sp"/>
                     </LinearLayout>
-
                 </LinearLayout>
-
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
-                android:id="@+id/chart_card"
+                android:id="@+id/bar_chart_card"
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
+                android:layout_height="320dp"
                 android:layout_marginTop="24dp"
                 app:cardBackgroundColor="#1A1A23"
                 app:cardCornerRadius="16dp"
@@ -210,76 +244,65 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Tendances de la semaine"
+                        android:text="Durée de sommeil (Semaine)"
                         android:textColor="#B4B0FF"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:fontFamily="sans-serif-medium"
-                        android:layout_marginBottom="16dp"/>
+                        android:layout_marginBottom="8dp"/>
 
                     <com.github.mikephil.charting.charts.BarChart
                         android:id="@+id/sleep_chart"
                         android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"/>
-
+                        android:layout_height="match_parent"/>
                 </LinearLayout>
-
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
-                android:id="@+id/insights_card"
+                android:id="@+id/line_chart_card"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="320dp"
                 android:layout_marginTop="24dp"
-                android:layout_marginBottom="80dp"
                 app:cardBackgroundColor="#1A1A23"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
-                app:layout_constraintTop_toBottomOf="@id/chart_card"
-                app:layout_constraintBottom_toBottomOf="parent">
+                app:layout_constraintTop_toBottomOf="@id/bar_chart_card">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="16dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Insights"
+                        android:text="Qualité du sommeil (%)"
                         android:textColor="#B4B0FF"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:fontFamily="sans-serif-medium"
-                        android:layout_marginBottom="16dp"/>
+                        android:layout_marginBottom="8dp"/>
 
-                    <TextView
-                        android:id="@+id/tv_insight"
+                    <com.github.mikephil.charting.charts.LineChart
+                        android:id="@+id/quality_chart"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Vous vous couchez 30 min plus tard que la semaine passée"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp"
-                        android:lineSpacingExtra="4dp"/>
-
+                        android:layout_height="match_parent"/>
                 </LinearLayout>
-
             </androidx.cardview.widget.CardView>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
     </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_sleep"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="100dp"
-        android:layout_marginRight="30dp"
+        android:layout_marginBottom="32dp"
+        android:layout_marginEnd="32dp"
         android:src="@drawable/ic_add"
-        android:contentDescription="Ajouter une session de sommeil"
         app:backgroundTint="#B4B0FF"
         app:tint="#0A0A0F"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:elevation="6dp"/> </androidx.constraintlayout.widget.ConstraintLayout>
+        android:elevation="6dp"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

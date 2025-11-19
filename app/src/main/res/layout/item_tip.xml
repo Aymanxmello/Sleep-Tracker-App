@@ -1,6 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardBackgroundColor="#1A1A23"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <ImageView
+                android:id="@+id/iv_tip_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/idea"
+                app:tint="#B4B0FF"/>
+
+            <TextView
+                android:id="@+id/tv_tip_category"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CONSEIL"
+                android:textColor="#B4B0FF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginStart="8dp"
+                android:letterSpacing="0.1"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_tip_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Éteignez les écrans"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tv_tip_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="La lumière bleue retarde la production de mélatonine. Essayez de lire un livre 30 min avant de dormir."
+            android:textColor="#9DB4D1"
+            android:textSize="14sp"
+            android:lineSpacingExtra="4dp"
+            android:layout_marginBottom="16dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_share_tip"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Partager"
+                android:textColor="#B4B0FF"
+                app:strokeColor="#B4B0FF"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/btn_open_link"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Lire l'article"
+                android:textColor="#0A0A0F"
+                android:backgroundTint="#B4B0FF"
+                android:visibility="gone"/> </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

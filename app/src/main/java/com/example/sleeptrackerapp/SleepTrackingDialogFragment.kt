@@ -11,6 +11,8 @@ import android.widget.*
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -21,12 +23,15 @@ class SleepTrackingDialogFragment : DialogFragment() {
     private lateinit var btnStartManual: MaterialButton
     private lateinit var btnAddManual: MaterialButton
     private lateinit var tvCurrentTime: TextView
-    // Initialisation du bouton X
     private lateinit var btnClose: ImageButton
 
     private lateinit var timer: CountDownTimer
     private var isTracking = false
     private var startTimeMillis: Long = 0
+
+    // Firebase
+    private lateinit var auth: FirebaseAuth
+    private lateinit var firestore: FirebaseFirestore
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,6 +39,11 @@ class SleepTrackingDialogFragment : DialogFragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.dialog_sleep_tracking, container, false)
+
+        // Initialize Firebase
+        auth = FirebaseAuth.getInstance()
+        firestore = FirebaseFirestore.getInstance()
+
         initializeViews(view)
         setupSpinner()
         setupClickListeners()
@@ -61,10 +71,8 @@ class SleepTrackingDialogFragment : DialogFragment() {
         btnStartManual = view.findViewById(R.id.btn_start_manual)
         btnAddManual = view.findViewById(R.id.btn_add_manual)
         tvCurrentTime = view.findViewById(R.id.tv_current_time)
-        // Correction: Initialisation du bouton de fermeture
         btnClose = view.findViewById(R.id.btn_close)
 
-        // Afficher l'heure actuelle
         updateCurrentTime()
     }
 
@@ -88,14 +96,12 @@ class SleepTrackingDialogFragment : DialogFragment() {
             addManualSleepEntry()
         }
 
-        // Correction: Utilisation de la variable initialisée pour le clic sur le bouton X
         btnClose.setOnClickListener {
             if (isTracking) {
-                // Arrête le timer pour un nettoyage propre
                 stopTimer()
                 isTracking = false
             }
-            dismiss() // Ferme le dialogue
+            dismiss()
         }
     }
 
@@ -107,7 +113,6 @@ class SleepTrackingDialogFragment : DialogFragment() {
         startTimeMillis = System.currentTimeMillis()
         startTimer()
 
-        // Désactiver les autres contrôles pendant le tracking
         etSleepDuration.isEnabled = false
         spinnerSleepQuality.isEnabled = false
         btnAddManual.isEnabled = false
@@ -124,43 +129,32 @@ class SleepTrackingDialogFragment : DialogFragment() {
 
         stopTimer()
 
-        // CALCUL DE LA DURÉE ÉCOULÉE
         val elapsedTimeMillis = endTimeMillis - startTimeMillis
         val totalSeconds = (elapsedTimeMillis / 1000).toInt()
-
-        // Conversion en format HH:MM
         val hours = totalSeconds / 3600
         val minutes = (totalSeconds % 3600) / 60
-        val durationString = String.format("%02d:%02d", hours, minutes)
 
-        // Afficher la durée calculée dans le champ d'entrée
+        val durationString = String.format("%02d:%02d", hours, minutes)
         etSleepDuration.setText(durationString)
 
-        // Réactiver les autres contrôles
         etSleepDuration.isEnabled = true
         spinnerSleepQuality.isEnabled = true
         btnAddManual.isEnabled = true
 
-        Toast.makeText(requireContext(), "Suivi du sommeil arrêté", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "Suivi terminé.", Toast.LENGTH_SHORT).show()
     }
 
     private fun startTimer() {
-        // Le timer calcule le temps écoulé basé sur startTimeMillis
         timer = object : CountDownTimer(Long.MAX_VALUE, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val elapsedMillis = System.currentTimeMillis() - startTimeMillis
                 val totalSeconds = (elapsedMillis / 1000).toInt()
-
                 val hours = totalSeconds / 3600
                 val minutes = (totalSeconds % 3600) / 60
                 val secs = totalSeconds % 60
-
                 tvCurrentTime.text = String.format("Temps écoulé: %02d:%02d:%02d", hours, minutes, secs)
             }
-
-            override fun onFinish() {
-                // Ne devrait pas être appelé
-            }
+            override fun onFinish() { }
         }
         timer.start()
     }
@@ -177,37 +171,71 @@ class SleepTrackingDialogFragment : DialogFragment() {
         val quality = spinnerSleepQuality.selectedItem.toString()
 
         if (duration.isEmpty()) {
-            etSleepDuration.error = "Veuillez entrer la durée du sommeil"
+            etSleepDuration.error = "Requis"
             return
         }
-
-        // Valider le format de durée (HH:MM)
         if (!isValidDurationFormat(duration)) {
-            etSleepDuration.error = "Format invalide. Utilisez HH:MM"
+            etSleepDuration.error = "Format HH:MM invalide"
             return
         }
 
-        // Sauvegarder les données
         saveSleepData(duration, quality)
-
-        Toast.makeText(requireContext(), "Session de sommeil ajoutée", Toast.LENGTH_SHORT).show()
-        dismiss()
     }
 
     private fun isValidDurationFormat(duration: String): Boolean {
         return duration.matches(Regex("^\\d{1,2}:\\d{2}$"))
     }
 
-    private fun saveSleepData(duration: String, quality: String) {
-        // Sauvegarder dans SharedPreferences
-        val sharedPref = requireContext().getSharedPreferences("sleep_data", Context.MODE_PRIVATE)
-        val editor = sharedPref.edit()
+    private fun saveSleepData(durationStr: String, qualityStr: String) {
+        val user = auth.currentUser
+        if (user == null) {
+            Toast.makeText(context, "Erreur: Non connecté", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        editor.putString("last_sleep_date", date)
-        editor.putString("last_sleep_duration", duration)
-        editor.putString("last_sleep_quality", quality)
-        editor.apply()
+        // 1. Save to SharedPreferences (for fast "Last Night" access)
+        val sharedPref = requireContext().getSharedPreferences("sleep_data", Context.MODE_PRIVATE)
+        sharedPref.edit()
+            .putString("last_sleep_date", SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()))
+            .putString("last_sleep_duration", durationStr)
+            .putString("last_sleep_quality", qualityStr)
+            .apply()
+
+        // 2. Prepare data for Firestore
+        // Convert HH:MM to Float hours (e.g., "07:30" -> 7.5)
+        val parts = durationStr.split(":")
+        val hours = parts[0].toFloat()
+        val minutes = parts[1].toFloat()
+        val durationFloat = hours + (minutes / 60f)
+
+        // Map quality text to Score (0-100)
+        val qualityScore = when(qualityStr) {
+            "Excellente" -> 100
+            "Bonne" -> 80
+            "Moyenne" -> 60
+            "Mauvaise" -> 40
+            else -> 20
+        }
+
+        val sleepSession = hashMapOf(
+            "date" to System.currentTimeMillis(),
+            "durationString" to durationStr,
+            "durationHours" to durationFloat,
+            "qualityText" to qualityStr,
+            "qualityScore" to qualityScore
+        )
+
+        // 3. Save to Firestore
+        firestore.collection("users").document(user.uid)
+            .collection("sleep_sessions")
+            .add(sleepSession)
+            .addOnSuccessListener {
+                Toast.makeText(context, "Session enregistrée !", Toast.LENGTH_SHORT).show()
+                dismiss()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(context, "Erreur de sauvegarde: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun updateCurrentTime() {
