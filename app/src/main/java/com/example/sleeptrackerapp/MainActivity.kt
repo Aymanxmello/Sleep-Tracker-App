@@ -9,6 +9,10 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -18,20 +22,16 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
     private lateinit var auth: FirebaseAuth
     private lateinit var navBar: LinearLayout
     private lateinit var selectedBackground: LinearLayout
+    private lateinit var viewPager: ViewPager2
 
     private lateinit var moonIcon: ImageView
     private lateinit var bellIcon: ImageView
     private lateinit var musicIcon: ImageView
     private lateinit var statsIcon: ImageView
 
-    private val fragments = listOf(
-        DashboardFragment.newInstance(),
-        GoalsFragment.newInstance(),
-        TipsFragment.newInstance(),
-        AccountFragment.newInstance()
-    )
+    // List to easily access icons by index
+    private lateinit var navIcons: List<ImageView>
 
-    // CHANGED: Set initial selected position to 0 (Dashboard Fragment / Moon Icon)
     private var selectedPosition = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,10 +39,11 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
         LocaleHelper.loadLocale(this)
         setContentView(R.layout.activity_main)
 
-        // Initialisation de Firebase
+        // Initialize Firebase
         auth = Firebase.auth
 
-        // Connect views
+        // Initialize Views
+        viewPager = findViewById(R.id.viewPager)
         navBar = findViewById(R.id.navBar)
         selectedBackground = findViewById(R.id.selectedBackground)
 
@@ -51,34 +52,53 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
         musicIcon = findViewById(R.id.musicIcon)
         statsIcon = findViewById(R.id.statsIcon)
 
+        navIcons = listOf(moonIcon, bellIcon, musicIcon, statsIcon)
+
+        setupViewPager()
         setupClickListeners()
 
-        // 3. Set the initial fragment and move background
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, fragments[selectedPosition])
-            .commit()
-
-        // Move glowing background to default item (needs to be posted to get correct measurements)
-        moonIcon.post { // CHANGED: Use moonIcon for initial placement
+        // Move glowing background to initial position
+        moonIcon.post {
             moveBackgroundTo(moonIcon, animate = false)
-            updateIconColors()
+            updateIconColors(0)
         }
     }
 
-    private fun setupClickListeners() {
-        moonIcon.setOnClickListener { onIconClick(0, moonIcon) }
-        bellIcon.setOnClickListener { onIconClick(1, bellIcon) }
-        musicIcon.setOnClickListener { onIconClick(2, musicIcon) }
-        statsIcon.setOnClickListener { onIconClick(3, statsIcon) }
+    private fun setupViewPager() {
+        val pagerAdapter = MainPagerAdapter(this)
+        viewPager.adapter = pagerAdapter
+        viewPager.offscreenPageLimit = 3 // Keep all fragments alive to prevent reloading
+        viewPager.isUserInputEnabled = true // Enable Swipe
+
+        // Listener for Swipe events
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                // Sync Navigation Bar when swiping
+                if (selectedPosition != position) {
+                    selectedPosition = position
+                    moveBackgroundTo(navIcons[position], animate = true)
+                    updateIconColors(position)
+                }
+            }
+        })
     }
 
-    private fun onIconClick(position: Int, icon: ImageView) {
+    private fun setupClickListeners() {
+        moonIcon.setOnClickListener { onIconClick(0) }
+        bellIcon.setOnClickListener { onIconClick(1) }
+        musicIcon.setOnClickListener { onIconClick(2) }
+        statsIcon.setOnClickListener { onIconClick(3) }
+    }
+
+    private fun onIconClick(position: Int) {
         if (position != selectedPosition) {
+            // Move ViewPager to the clicked item
+            viewPager.currentItem = position
+            // Note: The OnPageChangeCallback will handle the UI updates (background move & colors)
 
-            // 4. Switch Fragment Content
-            switchFragment(position)
-
-            // Bounce animation on tap
+            // Optional: Add the bounce animation on click
+            val icon = navIcons[position]
             icon.animate()
                 .scaleX(1.2f)
                 .scaleY(1.2f)
@@ -91,37 +111,20 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
                         .start()
                 }
                 .start()
-
-            selectedPosition = position
-            moveBackgroundTo(icon, animate = true)
-            updateIconColors()
         }
     }
 
-    private fun switchFragment(position: Int) {
-        val nextFragment = fragments[position]
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, nextFragment)
-            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-            .commit()
-    }
-
-    private fun updateIconColors() {
-        val icons = listOf(moonIcon, bellIcon, musicIcon, statsIcon)
-
-        icons.forEachIndexed { index, icon ->
-            if (index == selectedPosition) {
-                // Set active color to white
+    private fun updateIconColors(activePosition: Int) {
+        navIcons.forEachIndexed { index, icon ->
+            if (index == activePosition) {
                 icon.setColorFilter(ContextCompat.getColor(this, android.R.color.white))
             } else {
-                // Set inactive color (R.color.icon_unselected)
                 icon.setColorFilter(ContextCompat.getColor(this, R.color.icon_unselected))
             }
         }
     }
 
     private fun moveBackgroundTo(targetView: ImageView, animate: Boolean) {
-
         val targetX = targetView.x + (targetView.width / 2) - (selectedBackground.width / 2)
 
         if (animate) {
@@ -137,16 +140,28 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
         }
     }
 
-    // 2. Implementation of the LogoutListener method
     override fun onLogoutClicked() {
-        auth.signOut() // Sign out the user from Firebase
-
-        // Navigate back to LoginActivity and clear the activity stack
+        auth.signOut()
         val intent = Intent(this, LoginActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         startActivity(intent)
         finish()
         Toast.makeText(this, "Déconnexion réussie.", Toast.LENGTH_SHORT).show()
+    }
+
+    // Adapter inner class
+    private inner class MainPagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
+        override fun getItemCount(): Int = 4
+
+        override fun createFragment(position: Int): Fragment {
+            return when (position) {
+                0 -> DashboardFragment.newInstance()
+                1 -> GoalsFragment.newInstance()
+                2 -> TipsFragment.newInstance()
+                3 -> AccountFragment.newInstance()
+                else -> DashboardFragment.newInstance()
+            }
+        }
     }
 }
