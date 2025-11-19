@@ -25,7 +25,27 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+
 class AccountFragment : Fragment() {
+
+    // Gestionnaire de résultat pour la permission
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Si accepté, on active tout
+            switchNotifications.isChecked = true
+        } else {
+            // Si refusé, on décoche le switch
+            switchNotifications.isChecked = false
+            Toast.makeText(context, "Permission nécessaire pour les rappels", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     interface LogoutListener {
         fun onLogoutClicked()
@@ -111,22 +131,33 @@ class AccountFragment : Fragment() {
         }
 
         // Gestion du switch Notifications
-        switchNotifications.setOnCheckedChangeListener { _, isChecked ->
+        switchNotifications.setOnCheckedChangeListener { buttonView, isChecked ->
             val context = requireContext()
+
             if (isChecked) {
-                // Utiliser les variables d'heure personnalisées
+                // VÉRIFICATION DE LA PERMISSION (Android 13+)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        // On décoche temporairement pour éviter une boucle, le temps de demander
+                        buttonView.isChecked = false
+                        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        return@setOnCheckedChangeListener
+                    }
+                }
+
+                // Si on a la permission, on programme
                 scheduleSleepReminder(context, bedTimeHour, bedTimeMinute)
                 scheduleWakeUpReminder(context, wakeUpHour, wakeUpMinute)
                 scheduleInactivityCheck(context)
-
                 Toast.makeText(context, "Rappels activés", Toast.LENGTH_SHORT).show()
+
             } else {
                 cancelSleepReminder(context)
                 WorkManager.getInstance(context).cancelUniqueWork("DailyWakeUpReminder")
                 WorkManager.getInstance(context).cancelUniqueWork("InactivityCheck")
-                Toast.makeText(context, "Rappels désactivés", Toast.LENGTH_SHORT).show()
-            }
+                Toast.makeText(context, "Rappels désactivés", Toast.LENGTH_SHORT).show()            }
         }
+
 
         btnExportCsv.setOnClickListener { exportDataToCsv() }
 
