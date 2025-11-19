@@ -70,10 +70,13 @@ dependencies {
     // NOUVEAU: Pour utiliser lifecycleScope dans les fragments
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
+    implementation("com.google.code.gson:gson:2.10.1")
+
 
 
 
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
 
     testImplementation(libs.junit)

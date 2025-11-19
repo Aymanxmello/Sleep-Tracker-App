@@ -295,6 +295,21 @@
                 android:background="@drawable/primary_button_background"
                 android:backgroundTint="#1A3A6A"
                 android:layout_marginBottom="16dp"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_stats"
+                app:iconTint="@color/white"/>
+
+            <Button
+                android:id="@+id/btn_backup_encrypted"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Sauvegarde Locale (Chiffrée)"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/white"
+                android:background="@drawable/primary_button_background"
+                android:backgroundTint="#00E676"
+                android:layout_marginBottom="16dp"
                 android:textAllCaps="false"/>
 
             <Button
