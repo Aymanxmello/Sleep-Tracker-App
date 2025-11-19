@@ -12,6 +12,10 @@ activity = "1.11.0"
 constraintlayout = "2.2.1"
 navigationFragment = "2.9.6"
 
+retrofit = "2.11.0"
+converterGson = "2.11.0"
+lifecycleRuntimeKtx = "2.8.3"
+
 viewpager2 = "1.1.0"
 lottie = "6.7.1"
 
@@ -35,6 +39,10 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
+
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "converterGson" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 
 # Other libraries
 viewpager2 = { group = "androidx.viewpager2", name = "viewpager2", version.ref = "viewpager2" }

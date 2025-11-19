@@ -7,8 +7,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.fragment.app.Fragment
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.sleeptrackerapp.R
 import com.example.sleeptrackerapp.SleepTrackingDialogFragment
 import com.github.mikephil.charting.charts.BarChart
@@ -18,14 +21,111 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+// NOUVEAU: Imports pour Coroutines et WeatherService
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
-// CORRECTED: Changed base class from AppCompatActivity to Fragment
+// Helper function to convert Unix timestamp (seconds) to HH:mm string
+private fun convertUnixToTime(timestamp: Long): String {
+    val date = java.util.Date(timestamp * 1000) // Convert seconds to milliseconds
+    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+    return formatter.format(date)
+}
+
+
+// Structure de données pour les jours du RecyclerView
+data class DayItem(
+    val dayOfMonth: String,
+    val dayName: String,
+    val date: Calendar,
+    var isSelected: Boolean = false
+)
+
+// Adaptateur pour afficher les jours
+class DayAdapter(
+    private val days: List<DayItem>,
+    private val onDaySelected: (DayItem) -> Unit
+) : RecyclerView.Adapter<DayAdapter.DayViewHolder>() {
+
+    private var selectedPosition = days.indexOfFirst { it.isSelected }
+
+    inner class DayViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val cardView: CardView = itemView.findViewById(R.id.cardDay)
+        val tvDay: TextView = itemView.findViewById(R.id.tvDay)
+        val tvDayName: TextView = itemView.findViewById(R.id.tvDayName)
+
+        init {
+            itemView.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    selectNewDay(position)
+                }
+            }
+        }
+
+        fun bind(day: DayItem) {
+            tvDay.text = day.dayOfMonth
+            tvDayName.text = day.dayName
+
+            val context = itemView.context
+            if (day.isSelected) {
+                // Couleur sélectionnée (e.g., bleu clair)
+                cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.cyan_accent))
+                tvDay.setTextColor(ContextCompat.getColor(context, R.color.dark_blue_primary))
+                tvDayName.setTextColor(ContextCompat.getColor(context, R.color.dark_blue_primary))
+            } else {
+                // Couleur désélectionnée (e.g., foncé)
+                cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.dark_blue_tertiary))
+                tvDay.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+                tvDayName.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+            }
+        }
+    }
+
+    private fun selectNewDay(position: Int) {
+        if (selectedPosition != position) {
+            // Désélectionner l'ancien
+            if (selectedPosition != RecyclerView.NO_POSITION) {
+                days[selectedPosition].isSelected = false
+                notifyItemChanged(selectedPosition)
+            }
+            // Sélectionner le nouveau
+            selectedPosition = position
+            days[selectedPosition].isSelected = true
+            notifyItemChanged(selectedPosition)
+            onDaySelected(days[position])
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DayViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_day, parent, false)
+        return DayViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: DayViewHolder, position: Int) {
+        holder.bind(days[position])
+    }
+
+    override fun getItemCount(): Int = days.size
+}
+
+
 class DashboardFragment : Fragment() {
 
     private lateinit var sleepChart: BarChart
     private lateinit var fabAddSleep: FloatingActionButton
     private lateinit var tvSleepDuration: TextView
     private lateinit var tvSleepQuality: TextView
+    private lateinit var rvDays: RecyclerView
+    private lateinit var tvSelectedDate: TextView
+    // Champs pour les données météo
+    private lateinit var tvTemperature: TextView
+    private lateinit var tvSunriseTime: TextView
+    private lateinit var tvSunsetTime: TextView
+
 
     companion object {
         fun newInstance() = DashboardFragment()
@@ -35,7 +135,6 @@ class DashboardFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_dashboard, container, false)
     }
 
@@ -44,10 +143,9 @@ class DashboardFragment : Fragment() {
         initializeViews(view)
         setupSleepChart()
         setupClickListeners()
-        // Data is now updated in onResume
+        setupDaySelector()
     }
 
-    // NEW: Refresh data every time the fragment becomes visible (e.g., after dismissing the dialog)
     override fun onResume() {
         super.onResume()
         updateSleepData()
@@ -58,7 +156,115 @@ class DashboardFragment : Fragment() {
         fabAddSleep = view.findViewById(R.id.fab_add_sleep)
         tvSleepDuration = view.findViewById(R.id.tv_sleep_duration)
         tvSleepQuality = view.findViewById(R.id.tv_sleep_quality)
+
+        // Initialisation des vues de date/météo
+        rvDays = view.findViewById(R.id.rv_days)
+        tvSelectedDate = view.findViewById(R.id.tv_selected_date)
+        tvTemperature = view.findViewById(R.id.tv_temperature)
+        tvSunriseTime = view.findViewById(R.id.tv_sunrise_time)
+        tvSunsetTime = view.findViewById(R.id.tv_sunset_time)
     }
+
+    private fun setupDaySelector() {
+        val daysList = generateLastWeekDays()
+
+        if (daysList.isNotEmpty()) {
+            daysList.last().isSelected = true
+            updateDayDisplay(daysList.last())
+        }
+
+        rvDays.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        rvDays.adapter = DayAdapter(daysList) { selectedDay ->
+            updateDayDisplay(selectedDay)
+            updateSleepData()
+        }
+        rvDays.scrollToPosition(daysList.size - 1)
+    }
+
+    // MODIFIÉ: Implémente la logique d'appel API asynchrone (OpenWeatherMap)
+    private fun updateDayDisplay(dayItem: DayItem) {
+        val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
+        tvSelectedDate.text = dateFormat.format(dayItem.date.time)
+
+        // PARAMÈTRES POUR L'API OWM
+        val API_KEY = "4cd29e7ea36ffeaef7cad09a75f90f6c" // Clé API insérée
+        val LATITUDE = 48.8566 // Latitude de Paris (Exemple)
+        val LONGITUDE = 2.3522 // Longitude de Paris
+
+        // Afficher des marqueurs de chargement en attendant l'API
+        tvTemperature.text = "..."
+        tvSunsetTime.text = "..."
+        tvSunriseTime.text = "..."
+
+        // UTILISATION DE COROUTINES POUR L'APPEL API (Asynchrone)
+        lifecycleScope.launch {
+            try {
+                val response = WeatherApiClient.service.fetchWeather(
+                    lat = LATITUDE,
+                    lon = LONGITUDE,
+                    apiKey = API_KEY
+                )
+
+                // Convertir la date du jour sélectionné en timestamp Unix (en secondes) pour comparaison
+                val selectedDayStartTimestamp = dayItem.date.apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis / 1000L
+
+                // Trouver les données météo qui correspondent au jour sélectionné.
+                // On utilise une marge de 24h (86400 secondes) pour la comparaison des dates.
+                val dailyData = response.daily.find { daily ->
+                    val dayDiff = Math.abs(daily.dt - selectedDayStartTimestamp)
+                    dayDiff < 86400
+                }
+
+                if (dailyData != null) {
+                    // Mettre à jour l'UI avec les données réelles
+                    tvTemperature.text = String.format("%.1f°C", dailyData.temp.day)
+                    tvSunsetTime.text = "🌅 ${convertUnixToTime(dailyData.sunset)}"
+                    tvSunriseTime.text = "🌄 ${convertUnixToTime(dailyData.sunrise)}"
+                } else {
+                    // Les données pour ce jour ne sont pas disponibles (hors fenêtre de prévision de 7 jours)
+                    tvTemperature.text = "N/A"
+                    tvSunsetTime.text = "🌅 N/A"
+                    tvSunriseTime.text = "🌄 N/A"
+                }
+
+            } catch (e: Exception) {
+                // Gérer les erreurs (ex: clé API invalide, connexion échouée)
+                tvTemperature.text = "Erreur"
+                tvSunsetTime.text = "🌅 Erreur"
+                tvSunriseTime.text = "🌄 Erreur"
+            }
+        }
+    }
+
+    private fun generateLastWeekDays(): List<DayItem> {
+        val days = mutableListOf<DayItem>()
+        val calendar = Calendar.getInstance()
+        val dayOfMonthFormat = SimpleDateFormat("dd", Locale.getDefault())
+        val dayNameFormat = SimpleDateFormat("EEE", Locale.getDefault())
+
+        // Remonte 6 jours avant aujourd'hui
+        calendar.add(Calendar.DAY_OF_YEAR, -6)
+
+        for (i in 0 until 7) {
+            val dateCopy = calendar.clone() as Calendar
+            days.add(
+                DayItem(
+                    dayOfMonth = dayOfMonthFormat.format(dateCopy.time),
+                    dayName = dayNameFormat.format(dateCopy.time),
+                    date = dateCopy,
+                    isSelected = (i == 6)
+                )
+            )
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+        }
+        return days
+    }
+
 
     private fun setupSleepChart() {
         // Configuration du graphique
@@ -95,11 +301,9 @@ class DashboardFragment : Fragment() {
         sleepChart.legend.isEnabled = false
     }
 
-    // MODIFIED: Reads data from SharedPreferences and updates UI elements
     private fun updateSleepData() {
         val sharedPref = requireContext().getSharedPreferences("sleep_data", Context.MODE_PRIVATE)
-        // Retrieve the last saved sleep data
-        val lastDuration = sharedPref.getString("last_sleep_duration", "7:15") // Default for consistency
+        val lastDuration = sharedPref.getString("last_sleep_duration", "7:15")
         val lastQuality = sharedPref.getString("last_sleep_quality", "Bonne")
 
         // 1. Update Summary Card (Résumé de la nuit dernière)
@@ -108,33 +312,29 @@ class DashboardFragment : Fragment() {
 
         // 2. Update Chart (Graphique Hebdomadaire)
         val sleepEntries = ArrayList<BarEntry>()
-        // Existing mock data for the week (Lundi to Samedi)
-        sleepEntries.add(BarEntry(0f, 7.25f))  // Lundi: 7h15
-        sleepEntries.add(BarEntry(1f, 6.75f))  // Mardi: 6h45
-        sleepEntries.add(BarEntry(2f, 8.0f))   // Mercredi: 8h00
-        sleepEntries.add(BarEntry(3f, 7.5f))   // Jeudi: 7h30
-        sleepEntries.add(BarEntry(4f, 6.5f))   // Vendredi: 6h30
-        sleepEntries.add(BarEntry(5f, 8.5f))   // Samedi: 8h30
+        sleepEntries.add(BarEntry(0f, 7.25f))
+        sleepEntries.add(BarEntry(1f, 6.75f))
+        sleepEntries.add(BarEntry(2f, 8.0f))
+        sleepEntries.add(BarEntry(3f, 7.5f))
+        sleepEntries.add(BarEntry(4f, 6.5f))
+        sleepEntries.add(BarEntry(5f, 8.5f))
 
-        // Convert stored duration (HH:MM) to float (H.XX) for the chart
         val (hours, minutes) = try {
             val parts = lastDuration?.split(":")
             if (parts?.size == 2) {
                 Pair(parts[0].toFloat(), parts[1].toFloat())
             } else {
-                Pair(7f, 15f) // Fallback if invalid format
+                Pair(7f, 15f)
             }
         } catch (e: Exception) {
-            Pair(7f, 15f) // Fallback on parsing error
+            Pair(7f, 15f)
         }
 
         val lastDurationFloat = hours + (minutes / 60f)
 
-        // Replace the last entry (Dimanche) with the latest saved data
         if (sleepEntries.size >= 7) {
             sleepEntries[6] = BarEntry(6f, lastDurationFloat)
         } else {
-            // In case the list had less than 7 items, append the new one as the last entry
             sleepEntries.add(BarEntry(sleepEntries.size.toFloat(), lastDurationFloat))
         }
 
@@ -173,7 +373,6 @@ class DashboardFragment : Fragment() {
     }
 
     private fun showAddSleepDialog() {
-        // Use childFragmentManager to show the dialog
         val dialog = SleepTrackingDialogFragment()
         dialog.show(childFragmentManager, "SleepTrackingDialog")
     }

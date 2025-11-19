@@ -65,6 +65,13 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.cardview:cardview:1.0.0")
 
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    // NOUVEAU: Pour utiliser lifecycleScope dans les fragments
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+
+
+
 
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 

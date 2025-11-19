@@ -21,8 +21,12 @@ class SleepTrackingDialogFragment : DialogFragment() {
     private lateinit var btnStartManual: MaterialButton
     private lateinit var btnAddManual: MaterialButton
     private lateinit var tvCurrentTime: TextView
+    // Initialisation du bouton X
+    private lateinit var btnClose: ImageButton
+
     private lateinit var timer: CountDownTimer
     private var isTracking = false
+    private var startTimeMillis: Long = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,6 +61,8 @@ class SleepTrackingDialogFragment : DialogFragment() {
         btnStartManual = view.findViewById(R.id.btn_start_manual)
         btnAddManual = view.findViewById(R.id.btn_add_manual)
         tvCurrentTime = view.findViewById(R.id.tv_current_time)
+        // Correction: Initialisation du bouton de fermeture
+        btnClose = view.findViewById(R.id.btn_close)
 
         // Afficher l'heure actuelle
         updateCurrentTime()
@@ -82,9 +88,14 @@ class SleepTrackingDialogFragment : DialogFragment() {
             addManualSleepEntry()
         }
 
-        // Fermer le dialog
-        view?.findViewById<ImageButton>(R.id.btn_close)?.setOnClickListener {
-            dismiss()
+        // Correction: Utilisation de la variable initialisée pour le clic sur le bouton X
+        btnClose.setOnClickListener {
+            if (isTracking) {
+                // Arrête le timer pour un nettoyage propre
+                stopTimer()
+                isTracking = false
+            }
+            dismiss() // Ferme le dialogue
         }
     }
 
@@ -93,57 +104,72 @@ class SleepTrackingDialogFragment : DialogFragment() {
         btnStartManual.text = "Arrêter le suivi"
         btnStartManual.setBackgroundColor(requireContext().getColor(android.R.color.holo_red_dark))
 
-        // Démarrer le timer
+        startTimeMillis = System.currentTimeMillis()
         startTimer()
 
         // Désactiver les autres contrôles pendant le tracking
         etSleepDuration.isEnabled = false
         spinnerSleepQuality.isEnabled = false
         btnAddManual.isEnabled = false
+        etSleepDuration.setText("")
 
         Toast.makeText(requireContext(), "Suivi du sommeil démarré", Toast.LENGTH_SHORT).show()
     }
 
     private fun stopSleepTracking() {
+        val endTimeMillis = System.currentTimeMillis()
         isTracking = false
         btnStartManual.text = "Démarrer le suivi"
-        // Use R.color.purple_primary from resources
-        btnStartManual.setBackgroundColor(requireContext().getColor(com.example.sleeptrackerapp.R.color.purple_primary))
+        btnStartManual.setBackgroundColor(requireContext().getColor(R.color.purple_primary))
 
-        // Arrêter le timer
         stopTimer()
+
+        // CALCUL DE LA DURÉE ÉCOULÉE
+        val elapsedTimeMillis = endTimeMillis - startTimeMillis
+        val totalSeconds = (elapsedTimeMillis / 1000).toInt()
+
+        // Conversion en format HH:MM
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val durationString = String.format("%02d:%02d", hours, minutes)
+
+        // Afficher la durée calculée dans le champ d'entrée
+        etSleepDuration.setText(durationString)
 
         // Réactiver les autres contrôles
         etSleepDuration.isEnabled = true
         spinnerSleepQuality.isEnabled = true
         btnAddManual.isEnabled = true
 
-        // For simplicity, keeping the mock duration of 8:00 on stop,
-        // as the timer logic does not currently expose the final duration.
-        etSleepDuration.setText("8:00")
-
         Toast.makeText(requireContext(), "Suivi du sommeil arrêté", Toast.LENGTH_SHORT).show()
     }
 
     private fun startTimer() {
-        var seconds = 0
+        // Le timer calcule le temps écoulé basé sur startTimeMillis
         timer = object : CountDownTimer(Long.MAX_VALUE, 1000) {
             override fun onTick(millisUntilFinished: Long) {
-                seconds++
-                val hours = seconds / 3600
-                val minutes = (seconds % 3600) / 60
-                val secs = seconds % 60
+                val elapsedMillis = System.currentTimeMillis() - startTimeMillis
+                val totalSeconds = (elapsedMillis / 1000).toInt()
+
+                val hours = totalSeconds / 3600
+                val minutes = (totalSeconds % 3600) / 60
+                val secs = totalSeconds % 60
+
                 tvCurrentTime.text = String.format("Temps écoulé: %02d:%02d:%02d", hours, minutes, secs)
             }
 
-            override fun onFinish() {}
+            override fun onFinish() {
+                // Ne devrait pas être appelé
+            }
         }
         timer.start()
     }
 
     private fun stopTimer() {
-        timer.cancel()
-        tvCurrentTime.text = "Prêt pour le suivi"
+        if (::timer.isInitialized) {
+            timer.cancel()
+        }
+        updateCurrentTime()
     }
 
     private fun addManualSleepEntry() {
@@ -182,9 +208,6 @@ class SleepTrackingDialogFragment : DialogFragment() {
         editor.putString("last_sleep_duration", duration)
         editor.putString("last_sleep_quality", quality)
         editor.apply()
-
-        // Removed the incorrect call to (activity as? DashboardActivity)?.updateSleepData()
-        // The DashboardFragment's onResume() method will now handle the data refresh.
     }
 
     private fun updateCurrentTime() {
@@ -194,7 +217,7 @@ class SleepTrackingDialogFragment : DialogFragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (isTracking) {
+        if (isTracking && ::timer.isInitialized) {
             timer.cancel()
         }
     }

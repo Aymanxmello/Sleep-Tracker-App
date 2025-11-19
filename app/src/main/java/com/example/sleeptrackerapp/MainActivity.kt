@@ -32,7 +32,8 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
         AccountFragment.newInstance()
     )
 
-    private var selectedPosition = 2  // Default: Music icon (Tips Fragment) selected
+    // CHANGED: Set initial selected position to 0 (Dashboard Fragment / Moon Icon)
+    private var selectedPosition = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,8 +59,8 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
             .commit()
 
         // Move glowing background to default item (needs to be posted to get correct measurements)
-        musicIcon.post {
-            moveBackgroundTo(musicIcon, animate = false)
+        moonIcon.post { // CHANGED: Use moonIcon for initial placement
+            moveBackgroundTo(moonIcon, animate = false)
             updateIconColors()
         }
     }
