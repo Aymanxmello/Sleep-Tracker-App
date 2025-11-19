@@ -1,6 +1,7 @@
 package com.example.sleeptrackerapp
 
 import android.app.Dialog
+import android.content.Context
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.LayoutInflater
@@ -12,16 +13,8 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import java.text.SimpleDateFormat
 import java.util.*
-// Import for ColorStateList
-import android.content.res.ColorStateList
-import androidx.core.content.ContextCompat // Added for safer color getting
 
 class SleepTrackingDialogFragment : DialogFragment() {
-
-    // 1. Define the Listener Interface for sending data back to the hosting Fragment
-    interface SleepDataUpdateListener {
-        fun onSleepEntryAdded()
-    }
 
     private lateinit var etSleepDuration: TextInputEditText
     private lateinit var spinnerSleepQuality: Spinner
@@ -55,7 +48,6 @@ class SleepTrackingDialogFragment : DialogFragment() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        // Ensure dialog has a transparent background to use the custom background
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
 
@@ -72,7 +64,6 @@ class SleepTrackingDialogFragment : DialogFragment() {
 
     private fun setupSpinner() {
         val qualityOptions = arrayOf("Excellente", "Bonne", "Moyenne", "Mauvaise", "Très mauvaise")
-        // Use requireActivity() or requireContext() for a safer context
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, qualityOptions)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerSleepQuality.adapter = adapter
@@ -100,10 +91,7 @@ class SleepTrackingDialogFragment : DialogFragment() {
     private fun startSleepTracking() {
         isTracking = true
         btnStartManual.text = "Arrêter le suivi"
-
-        // FIX: Use setBackgroundTintList with a ColorStateList for MaterialButton
-        val redColor = ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark)
-        btnStartManual.backgroundTintList = ColorStateList.valueOf(redColor)
+        btnStartManual.setBackgroundColor(requireContext().getColor(android.R.color.holo_red_dark))
 
         // Démarrer le timer
         startTimer()
@@ -119,11 +107,8 @@ class SleepTrackingDialogFragment : DialogFragment() {
     private fun stopSleepTracking() {
         isTracking = false
         btnStartManual.text = "Démarrer le suivi"
-
-        // FIX: Use setBackgroundTintList with a ColorStateList for MaterialButton
-        // Get the purple_primary color from your resources
-        val purpleColor = ContextCompat.getColor(requireContext(), R.color.purple_primary)
-        btnStartManual.backgroundTintList = ColorStateList.valueOf(purpleColor)
+        // Use R.color.purple_primary from resources
+        btnStartManual.setBackgroundColor(requireContext().getColor(com.example.sleeptrackerapp.R.color.purple_primary))
 
         // Arrêter le timer
         stopTimer()
@@ -133,7 +118,8 @@ class SleepTrackingDialogFragment : DialogFragment() {
         spinnerSleepQuality.isEnabled = true
         btnAddManual.isEnabled = true
 
-        // Calculer la durée automatiquement (exemple: 8 heures)
+        // For simplicity, keeping the mock duration of 8:00 on stop,
+        // as the timer logic does not currently expose the final duration.
         etSleepDuration.setText("8:00")
 
         Toast.makeText(requireContext(), "Suivi du sommeil arrêté", Toast.LENGTH_SHORT).show()
@@ -187,8 +173,8 @@ class SleepTrackingDialogFragment : DialogFragment() {
     }
 
     private fun saveSleepData(duration: String, quality: String) {
-        // Sauvegarder dans SharedPreferences ou base de données
-        val sharedPref = requireContext().getSharedPreferences("sleep_data", android.content.Context.MODE_PRIVATE)
+        // Sauvegarder dans SharedPreferences
+        val sharedPref = requireContext().getSharedPreferences("sleep_data", Context.MODE_PRIVATE)
         val editor = sharedPref.edit()
 
         val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -197,8 +183,8 @@ class SleepTrackingDialogFragment : DialogFragment() {
         editor.putString("last_sleep_quality", quality)
         editor.apply()
 
-        // Notify the target fragment to update its UI
-        (targetFragment as? SleepDataUpdateListener)?.onSleepEntryAdded()
+        // Removed the incorrect call to (activity as? DashboardActivity)?.updateSleepData()
+        // The DashboardFragment's onResume() method will now handle the data refresh.
     }
 
     private fun updateCurrentTime() {
