@@ -77,7 +77,6 @@
                     android:padding="16dp"
                     android:src="@drawable/user"/>
             </LinearLayout>
-
         </FrameLayout>
     </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

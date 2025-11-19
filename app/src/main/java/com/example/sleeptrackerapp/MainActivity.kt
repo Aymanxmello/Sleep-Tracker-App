@@ -22,15 +22,20 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
     private lateinit var auth: FirebaseAuth
     private lateinit var navBar: LinearLayout
     private lateinit var selectedBackground: LinearLayout
-    private lateinit var viewPager: ViewPager2
+    private lateinit var viewPager: ViewPager2 // Ajout du ViewPager
 
     private lateinit var moonIcon: ImageView
     private lateinit var bellIcon: ImageView
     private lateinit var musicIcon: ImageView
     private lateinit var statsIcon: ImageView
 
-    // List to easily access icons by index
-    private lateinit var navIcons: List<ImageView>
+    // On garde la liste pour référence
+    private val fragments = listOf(
+        DashboardFragment.newInstance(),
+        GoalsFragment.newInstance(),
+        TipsFragment.newInstance(),
+        AccountFragment.newInstance()
+    )
 
     private var selectedPosition = 0
 
@@ -39,11 +44,10 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
         LocaleHelper.loadLocale(this)
         setContentView(R.layout.activity_main)
 
-        // Initialize Firebase
         auth = Firebase.auth
 
-        // Initialize Views
-        viewPager = findViewById(R.id.viewPager)
+        // Liaison des vues
+        viewPager = findViewById(R.id.viewPager) // Correspond à l'ID dans le XML
         navBar = findViewById(R.id.navBar)
         selectedBackground = findViewById(R.id.selectedBackground)
 
@@ -52,71 +56,80 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
         musicIcon = findViewById(R.id.musicIcon)
         statsIcon = findViewById(R.id.statsIcon)
 
-        navIcons = listOf(moonIcon, bellIcon, musicIcon, statsIcon)
-
+        // Configuration du ViewPager pour le Swipe
         setupViewPager()
         setupClickListeners()
 
-        // Move glowing background to initial position
+        // Initialisation UI (placement du fond blanc sur la 1ère icône)
         moonIcon.post {
             moveBackgroundTo(moonIcon, animate = false)
-            updateIconColors(0)
+            updateIconColors()
         }
     }
 
     private fun setupViewPager() {
-        val pagerAdapter = MainPagerAdapter(this)
-        viewPager.adapter = pagerAdapter
-        viewPager.offscreenPageLimit = 3 // Keep all fragments alive to prevent reloading
-        viewPager.isUserInputEnabled = true // Enable Swipe
+        val adapter = MainPagerAdapter(this)
+        viewPager.adapter = adapter
 
-        // Listener for Swipe events
+        // C'est ici que la magie du swipe opère :
+        // Quand on change de page (par swipe), on met à jour le menu du bas
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                // Sync Navigation Bar when swiping
-                if (selectedPosition != position) {
+                if (position != selectedPosition) {
+                    val icon = getIconForPosition(position)
+
+                    // Mettre à jour la position
                     selectedPosition = position
-                    moveBackgroundTo(navIcons[position], animate = true)
-                    updateIconColors(position)
+
+                    // Déclencher les animations (fond + couleur + rebond)
+                    moveBackgroundTo(icon, animate = true)
+                    updateIconColors()
+                    animateIconBounce(icon)
                 }
             }
         })
     }
 
     private fun setupClickListeners() {
-        moonIcon.setOnClickListener { onIconClick(0) }
-        bellIcon.setOnClickListener { onIconClick(1) }
-        musicIcon.setOnClickListener { onIconClick(2) }
-        statsIcon.setOnClickListener { onIconClick(3) }
+        // Au clic, on demande au ViewPager de changer de page
+        // (le callback onPageSelected ci-dessus s'occupera de l'animation)
+        moonIcon.setOnClickListener { viewPager.currentItem = 0 }
+        bellIcon.setOnClickListener { viewPager.currentItem = 1 }
+        musicIcon.setOnClickListener { viewPager.currentItem = 2 }
+        statsIcon.setOnClickListener { viewPager.currentItem = 3 }
     }
 
-    private fun onIconClick(position: Int) {
-        if (position != selectedPosition) {
-            // Move ViewPager to the clicked item
-            viewPager.currentItem = position
-            // Note: The OnPageChangeCallback will handle the UI updates (background move & colors)
-
-            // Optional: Add the bounce animation on click
-            val icon = navIcons[position]
-            icon.animate()
-                .scaleX(1.2f)
-                .scaleY(1.2f)
-                .setDuration(150)
-                .withEndAction {
-                    icon.animate()
-                        .scaleX(1f)
-                        .scaleY(1f)
-                        .setDuration(150)
-                        .start()
-                }
-                .start()
+    // Helper pour récupérer l'icône selon la position
+    private fun getIconForPosition(position: Int): ImageView {
+        return when (position) {
+            0 -> moonIcon
+            1 -> bellIcon
+            2 -> musicIcon
+            3 -> statsIcon
+            else -> moonIcon
         }
     }
 
-    private fun updateIconColors(activePosition: Int) {
-        navIcons.forEachIndexed { index, icon ->
-            if (index == activePosition) {
+    private fun animateIconBounce(icon: ImageView) {
+        icon.animate()
+            .scaleX(1.2f)
+            .scaleY(1.2f)
+            .setDuration(150)
+            .withEndAction {
+                icon.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(150)
+                    .start()
+            }
+            .start()
+    }
+
+    private fun updateIconColors() {
+        val icons = listOf(moonIcon, bellIcon, musicIcon, statsIcon)
+
+        icons.forEachIndexed { index, icon ->
+            if (index == selectedPosition) {
                 icon.setColorFilter(ContextCompat.getColor(this, android.R.color.white))
             } else {
                 icon.setColorFilter(ContextCompat.getColor(this, R.color.icon_unselected))
@@ -150,7 +163,7 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
         Toast.makeText(this, "Déconnexion réussie.", Toast.LENGTH_SHORT).show()
     }
 
-    // Adapter inner class
+    // Adaptateur obligatoire pour le ViewPager2
     private inner class MainPagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
         override fun getItemCount(): Int = 4
 
