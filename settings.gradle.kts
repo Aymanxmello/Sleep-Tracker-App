@@ -26,3 +26,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Sleep Tracker App"
 include(":app")
+include(":wear")
