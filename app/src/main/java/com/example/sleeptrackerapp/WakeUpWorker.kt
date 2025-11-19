@@ -1,8 +1,6 @@
 package com.example.sleeptrackerapp
 
-import android.Manifest
 import android.content.Context
-import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.*
@@ -10,21 +8,19 @@ import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 class WakeUpWorker(val context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override suspend fun doWork(): Result {
         sendWakeUpNotification()
         return Result.success()
     }
 
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun sendWakeUpNotification() {
-        val channelId = "sleep_reminders" // On réutilise le même canal
+        val channelId = "sleep_reminders"
         val notificationId = 1002
 
         val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_moon) // Remplacez par une icône de soleil si disponible
+            .setSmallIcon(R.drawable.ic_moon) // Assurez-vous d'avoir cette icône
             .setContentTitle("Bonjour ! ☀️")
-            .setContentText("C'est l'heure de se lever et de commencer la journée.")
+            .setContentText("C'est l'heure de se lever !")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
 
@@ -47,9 +43,15 @@ fun scheduleWakeUpReminder(context: Context, hour: Int, minute: Int) {
     }
 
     val initialDelay = target.timeInMillis - now.timeInMillis
+
     val request = PeriodicWorkRequestBuilder<WakeUpWorker>(24, TimeUnit.HOURS)
         .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
+        .addTag("wake_up_tag")
         .build()
 
-    workManager.enqueueUniquePeriodicWork("DailyWakeUpReminder", ExistingPeriodicWorkPolicy.UPDATE, request)
+    workManager.enqueueUniquePeriodicWork(
+        "DailyWakeUpReminder",
+        ExistingPeriodicWorkPolicy.UPDATE,
+        request
+    )
 }
