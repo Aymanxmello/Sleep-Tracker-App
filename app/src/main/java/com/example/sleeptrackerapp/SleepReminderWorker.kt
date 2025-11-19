@@ -1,11 +1,13 @@
 package com.example.sleeptrackerapp
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
@@ -24,11 +26,12 @@ class SleepReminderWorker(val context: Context, params: WorkerParameters) :
         return Result.success()
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun sendSleepReminderNotification() {
         val channelId = "sleep_reminders"
         val notificationId = 1001
 
-        // Créer le canal de notification (nécessaire pour Android 8+)
+        // Création du canal de notification (Android 8+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Rappels de sommeil"
             val descriptionText = "Rappels pour l'heure du coucher"
@@ -41,7 +44,7 @@ class SleepReminderWorker(val context: Context, params: WorkerParameters) :
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Intent pour ouvrir l'app au clic
+        // Intent pour ouvrir l'application
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -49,54 +52,50 @@ class SleepReminderWorker(val context: Context, params: WorkerParameters) :
             context, 0, intent, PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Construire la notification
+        // Construction de la notification "Pré-sommeil"
         val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_moon) // Assurez-vous que cette icône existe
+            .setSmallIcon(R.drawable.ic_moon)
             .setContentTitle("Il est temps de dormir ! 🌙")
             .setContentText("Préparez-vous pour une bonne nuit de sommeil. Éloignez les écrans.")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        // Afficher
         try {
             NotificationManagerCompat.from(context).notify(notificationId, builder.build())
         } catch (e: SecurityException) {
-            // Gérer la permission POST_NOTIFICATIONS sur Android 13+ ici si nécessaire
+            // Gérer les permissions ici
         }
     }
 }
 
-// Fonction utilitaire pour programmer le rappel
+// Fonction pour programmer le rappel quotidien
 fun scheduleSleepReminder(context: Context, hour: Int, minute: Int) {
     val workManager = WorkManager.getInstance(context)
 
-    // Calculer le délai initial jusqu'à l'heure cible
     val now = Calendar.getInstance()
     val target = Calendar.getInstance().apply {
         set(Calendar.HOUR_OF_DAY, hour)
         set(Calendar.MINUTE, minute)
         set(Calendar.SECOND, 0)
         if (before(now)) {
-            add(Calendar.DAY_OF_YEAR, 1) // Si l'heure est passée, programmer pour demain
+            add(Calendar.DAY_OF_YEAR, 1)
         }
     }
 
     val initialDelay = target.timeInMillis - now.timeInMillis
 
-    // Requête périodique (toutes les 24h)
     val reminderRequest = PeriodicWorkRequestBuilder<SleepReminderWorker>(24, TimeUnit.HOURS)
         .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
         .build()
 
     workManager.enqueueUniquePeriodicWork(
         "DailySleepReminder",
-        ExistingPeriodicWorkPolicy.UPDATE, // Remplace l'ancien rappel si on change l'heure
+        ExistingPeriodicWorkPolicy.UPDATE,
         reminderRequest
     )
 }
 
-// Fonction pour annuler les rappels
 fun cancelSleepReminder(context: Context) {
     WorkManager.getInstance(context).cancelUniqueWork("DailySleepReminder")
 }

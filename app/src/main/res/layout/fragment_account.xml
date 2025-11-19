@@ -128,14 +128,20 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:id="@+id/layout_bedtime"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground"
+                            android:paddingVertical="8dp">
                             <TextView
                                 android:layout_width="0dp"
                                 android:layout_weight="1"
                                 android:layout_height="wrap_content"
-                                android:text="Rappel coucher"
+                                android:text="Heure de coucher"
                                 android:textColor="#9DB4D1"/>
                             <TextView
                                 android:id="@+id/tv_reminder_pref"
@@ -143,7 +149,39 @@
                                 android:layout_height="wrap_content"
                                 android:text="22:30"
                                 android:textColor="#FFFFFF"
-                                android:textStyle="bold"/>
+                                android:textStyle="bold"
+                                android:drawablePadding="8dp"
+                                app:drawableEndCompat="@android:drawable/ic_menu_edit"
+                                app:drawableTint="#B4B0FF"/>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/layout_wakeup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground"
+                            android:paddingVertical="8dp"
+                            android:layout_marginTop="4dp">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:text="Heure de réveil"
+                                android:textColor="#9DB4D1"/>
+                            <TextView
+                                android:id="@+id/tv_wakeup_pref"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="07:00"
+                                android:textColor="#FFFFFF"
+                                android:textStyle="bold"
+                                android:drawablePadding="8dp"
+                                app:drawableEndCompat="@android:drawable/ic_menu_edit"
+                                app:drawableTint="#B4B0FF"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -245,6 +283,19 @@
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
+
+            <Button
+                android:id="@+id/btn_export_csv"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Exporter les données (CSV)"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/white"
+                android:background="@drawable/primary_button_background"
+                android:backgroundTint="#1A3A6A"
+                android:layout_marginBottom="16dp"
+                android:textAllCaps="false"/>
 
             <Button
                 android:id="@+id/btn_logout"

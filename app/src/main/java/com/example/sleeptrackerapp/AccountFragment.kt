@@ -7,11 +7,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.work.WorkManager
 import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.timepicker.MaterialTimePicker
+import com.google.android.material.timepicker.TimeFormat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -37,9 +40,19 @@ class AccountFragment : Fragment() {
     private lateinit var tvEmail: TextView
     private lateinit var tvDailyGoal: TextView
     private lateinit var tvTimezone: TextView
+    private lateinit var tvReminderPref: TextView // Heure coucher
+    private lateinit var tvWakeupPref: TextView   // Heure réveil
+    private lateinit var layoutBedtime: LinearLayout
+    private lateinit var layoutWakeup: LinearLayout
     private lateinit var switchNotifications: SwitchMaterial
     private lateinit var btnLogout: Button
-    private lateinit var btnExportCsv: Button // Nouveau bouton
+    private lateinit var btnExportCsv: Button
+
+    // Variables pour stocker les heures choisies (valeurs par défaut)
+    private var bedTimeHour = 22
+    private var bedTimeMinute = 30
+    private var wakeUpHour = 7
+    private var wakeUpMinute = 0
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -60,25 +73,62 @@ class AccountFragment : Fragment() {
         initializeViews(view)
         loadUserData()
 
+        // Charger les heures sauvegardées
+        loadTimePreferences()
+
         btnLogout.setOnClickListener {
             logoutListener?.onLogoutClicked()
         }
 
+        // Click Listener pour l'heure de coucher
+        layoutBedtime.setOnClickListener {
+            showTimePicker("Heure de coucher", bedTimeHour, bedTimeMinute) { hour, minute ->
+                bedTimeHour = hour
+                bedTimeMinute = minute
+                updateTimeUI()
+                saveTimePreferences()
+                // Reprogrammer si les notifs sont actives
+                if (switchNotifications.isChecked) {
+                    scheduleSleepReminder(requireContext(), bedTimeHour, bedTimeMinute)
+                    Toast.makeText(context, "Rappel coucher mis à jour", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        // Click Listener pour l'heure de réveil
+        layoutWakeup.setOnClickListener {
+            showTimePicker("Heure de réveil", wakeUpHour, wakeUpMinute) { hour, minute ->
+                wakeUpHour = hour
+                wakeUpMinute = minute
+                updateTimeUI()
+                saveTimePreferences()
+                // Reprogrammer si les notifs sont actives
+                if (switchNotifications.isChecked) {
+                    scheduleWakeUpReminder(requireContext(), wakeUpHour, wakeUpMinute)
+                    Toast.makeText(context, "Rappel réveil mis à jour", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
         // Gestion du switch Notifications
         switchNotifications.setOnCheckedChangeListener { _, isChecked ->
+            val context = requireContext()
             if (isChecked) {
-                // Programmer un rappel à 22h30 par défaut
-                scheduleSleepReminder(requireContext(), 22, 30)
-                Toast.makeText(context, "Rappels activés (22:30)", Toast.LENGTH_SHORT).show()
+                // Utiliser les variables d'heure personnalisées
+                scheduleSleepReminder(context, bedTimeHour, bedTimeMinute)
+                scheduleWakeUpReminder(context, wakeUpHour, wakeUpMinute)
+                scheduleInactivityCheck(context)
+
+                Toast.makeText(context, "Rappels activés", Toast.LENGTH_SHORT).show()
             } else {
-                cancelSleepReminder(requireContext())
+                cancelSleepReminder(context)
+                WorkManager.getInstance(context).cancelUniqueWork("DailyWakeUpReminder")
+                WorkManager.getInstance(context).cancelUniqueWork("InactivityCheck")
                 Toast.makeText(context, "Rappels désactivés", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // Gestion de l'Export CSV (Ajoutez ce bouton dans votre XML si non présent, ou utilisez un menu)
-        // Pour cet exemple, supposons qu'on ajoute un bouton dans le layout ou qu'on utilise un existant
-        // btnExportCsv.setOnClickListener { exportDataToCsv() }
+        btnExportCsv.setOnClickListener { exportDataToCsv() }
 
         return view
     }
@@ -88,9 +138,59 @@ class AccountFragment : Fragment() {
         tvEmail = view.findViewById(R.id.tv_email)
         tvDailyGoal = view.findViewById(R.id.tv_daily_goal)
         tvTimezone = view.findViewById(R.id.tv_timezone)
+
+        tvReminderPref = view.findViewById(R.id.tv_reminder_pref)
+        tvWakeupPref = view.findViewById(R.id.tv_wakeup_pref)
+        layoutBedtime = view.findViewById(R.id.layout_bedtime)
+        layoutWakeup = view.findViewById(R.id.layout_wakeup)
+
         switchNotifications = view.findViewById(R.id.switch_notifications)
         btnLogout = view.findViewById(R.id.btn_logout)
-        // btnExportCsv = view.findViewById(R.id.btn_export_csv) // Décommentez si vous ajoutez le bouton au XML
+        btnExportCsv = view.findViewById(R.id.btn_export_csv)
+    }
+
+    // Afficher le Material Time Picker
+    private fun showTimePicker(title: String, hour: Int, minute: Int, onTimeSelected: (Int, Int) -> Unit) {
+        val picker = MaterialTimePicker.Builder()
+            .setTimeFormat(TimeFormat.CLOCK_24H)
+            .setHour(hour)
+            .setMinute(minute)
+            .setTitleText(title)
+            .setInputMode(MaterialTimePicker.INPUT_MODE_CLOCK)
+            .build()
+
+        picker.addOnPositiveButtonClickListener {
+            onTimeSelected(picker.hour, picker.minute)
+        }
+
+        picker.show(parentFragmentManager, "TimePicker")
+    }
+
+    private fun updateTimeUI() {
+        tvReminderPref.text = String.format("%02d:%02d", bedTimeHour, bedTimeMinute)
+        tvWakeupPref.text = String.format("%02d:%02d", wakeUpHour, wakeUpMinute)
+    }
+
+    // Sauvegarder dans SharedPreferences
+    private fun saveTimePreferences() {
+        val sharedPref = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putInt("bed_hour", bedTimeHour)
+            putInt("bed_min", bedTimeMinute)
+            putInt("wake_hour", wakeUpHour)
+            putInt("wake_min", wakeUpMinute)
+            apply()
+        }
+    }
+
+    // Charger depuis SharedPreferences
+    private fun loadTimePreferences() {
+        val sharedPref = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        bedTimeHour = sharedPref.getInt("bed_hour", 22)
+        bedTimeMinute = sharedPref.getInt("bed_min", 30)
+        wakeUpHour = sharedPref.getInt("wake_hour", 7)
+        wakeUpMinute = sharedPref.getInt("wake_min", 0)
+        updateTimeUI()
     }
 
     private fun loadUserData() {
@@ -103,7 +203,6 @@ class AccountFragment : Fragment() {
                 .addOnSuccessListener { document ->
                     tvUsername.text = document.getString("username") ?: "Utilisateur"
                 }
-
             firestore.collection("users").document(user.uid).collection("goals")
                 .orderBy("dateCreated", Query.Direction.DESCENDING).limit(1).get()
                 .addOnSuccessListener { docs ->
@@ -114,8 +213,8 @@ class AccountFragment : Fragment() {
         }
     }
 
-    // Fonction d'export CSV
     fun exportDataToCsv() {
+        // (Code d'exportation CSV identique à avant...)
         val user = auth.currentUser ?: return
         Toast.makeText(context, "Génération du CSV...", Toast.LENGTH_SHORT).show()
 
@@ -127,35 +226,25 @@ class AccountFragment : Fragment() {
                     val fileName = "sleep_data_export.csv"
                     val file = File(requireContext().cacheDir, fileName)
                     val writer = FileWriter(file)
-
-                    // En-tête CSV
                     writer.append("Date,Durée (h),Qualité\n")
-
                     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-
                     for (doc in documents) {
                         val dateMillis = doc.getLong("date") ?: 0L
                         val dateStr = dateFormat.format(Date(dateMillis))
                         val duration = doc.getDouble("durationHours") ?: 0.0
                         val quality = doc.getString("qualityText") ?: "N/A"
-
                         writer.append("$dateStr,$duration,$quality\n")
                     }
                     writer.flush()
                     writer.close()
-
                     shareCsvFile(file)
-
                 } catch (e: Exception) {
-                    Toast.makeText(context, "Erreur lors de l'export", Toast.LENGTH_SHORT).show()
                     e.printStackTrace()
                 }
             }
     }
 
     private fun shareCsvFile(file: File) {
-        // Note: Pour Android 7+, utilisez FileProvider dans le Manifest
-        // Pour simplifier ici, on peut partager le contenu en texte brut si FileProvider est trop complexe à configurer immédiatement
         val content = file.readText()
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
