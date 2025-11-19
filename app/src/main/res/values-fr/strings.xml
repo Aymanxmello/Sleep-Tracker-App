@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">Sleep Tracker</string>
+
+    <string name="menu_dashboard">Tableau de bord</string>
+    <string name="menu_goals">Objectifs</string>
+    <string name="menu_account">Compte</string>
+    <string name="title_account">Mon Compte</string>
+
+    <string name="profile_section">Profil</string>
+    <string name="daily_goal_label">Objectif quotidien</string>
+    <string name="timezone_label">Fuseau horaire</string>
+    <string name="settings_section">Paramètres</string>
+
+    <string name="bedtime_reminder">Heure de coucher</string>
+    <string name="wakeup_reminder">Heure de réveil</string>
+    <string name="notifications_label">Notifications</string>
+    <string name="reminders_enabled">Rappels activés</string>
+    <string name="reminders_disabled">Rappels désactivés</string>
+    <string name="permission_required">Permission requise pour les notifications</string>
+
+    <string name="reminder_notification_title">Il est temps de dormir ! 🌙</string>
+    <string name="reminder_notification_body">Préparez-vous à dormir. Éloignez les écrans.</string>
+    <string name="wakeup_notification_title">Bonjour ! ☀️</string>
+    <string name="wakeup_notification_body">C\'est l\'heure de se lever et de commencer la journée.</string>
+
+    <string name="tracking_mode_label">Mode de suivi</string>
+    <string name="tracking_mode_manual">Manuel</string>
+    <string name="tracking_mode_auto">Auto</string>
+
+    <string name="language_label">Langue</string>
+    <string name="language_dialog_title">Choisir la langue</string>
+    <string name="current_language_name">Français</string>
+
+    <string name="export_csv">Exporter les données (CSV)</string>
+    <string name="backup_encrypted">Sauvegarde locale (Chiffrée)</string>
+    <string name="logout">Déconnexion</string>
+
+    <string name="csv_generating">Génération du CSV...</string>
+    <string name="backup_encrypting">Chiffrement de la sauvegarde...</string>
+    <string name="error_export">Échec de l\'exportation</string>
+</resources>

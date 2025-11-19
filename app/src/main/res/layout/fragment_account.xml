@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,7 +10,7 @@
         android:id="@+id/title_account"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Mon compte"
+        android:text="@string/title_account"
         android:textColor="#B4B0FF"
         android:textSize="32sp"
         android:fontFamily="sans-serif-medium"
@@ -53,6 +54,7 @@
                         android:src="@drawable/user"
                         app:tint="#B4B0FF"
                         android:layout_gravity="center_horizontal"
+                        android:contentDescription="@string/profile_section"
                         android:layout_marginBottom="16dp"/>
 
                     <TextView
@@ -96,7 +98,7 @@
                                 android:layout_width="0dp"
                                 android:layout_weight="1"
                                 android:layout_height="wrap_content"
-                                android:text="Objectif quotidien"
+                                android:text="@string/daily_goal_label"
                                 android:textColor="#9DB4D1"/>
                             <TextView
                                 android:id="@+id/tv_daily_goal"
@@ -116,7 +118,7 @@
                                 android:layout_width="0dp"
                                 android:layout_weight="1"
                                 android:layout_height="wrap_content"
-                                android:text="Fuseau horaire"
+                                android:text="@string/timezone_label"
                                 android:textColor="#9DB4D1"/>
                             <TextView
                                 android:id="@+id/tv_timezone"
@@ -141,7 +143,7 @@
                                 android:layout_width="0dp"
                                 android:layout_weight="1"
                                 android:layout_height="wrap_content"
-                                android:text="Heure de coucher"
+                                android:text="@string/bedtime_reminder"
                                 android:textColor="#9DB4D1"/>
                             <TextView
                                 android:id="@+id/tv_reminder_pref"
@@ -170,7 +172,7 @@
                                 android:layout_width="0dp"
                                 android:layout_weight="1"
                                 android:layout_height="wrap_content"
-                                android:text="Heure de réveil"
+                                android:text="@string/wakeup_reminder"
                                 android:textColor="#9DB4D1"/>
                             <TextView
                                 android:id="@+id/tv_wakeup_pref"
@@ -190,7 +192,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Paramètres"
+                android:text="@string/settings_section"
                 android:textColor="#B4B0FF"
                 android:textSize="18sp"
                 android:fontFamily="sans-serif-medium"
@@ -220,7 +222,7 @@
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:text="Notifications"
+                            android:text="@string/notifications_label"
                             android:textColor="#FFFFFF"
                             android:textSize="16sp"/>
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -242,13 +244,13 @@
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:text="Mode de suivi"
+                            android:text="@string/tracking_mode_label"
                             android:textColor="#FFFFFF"
                             android:textSize="16sp"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Manuel"
+                            android:text="@string/tracking_mode_manual"
                             android:textColor="#9DB4D1"
                             android:layout_marginEnd="8dp"/>
                         <View
@@ -258,27 +260,38 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/layout_language"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
+                        android:paddingVertical="12dp">
+
                         <TextView
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:text="Langue"
+                            android:text="@string/language_label"
                             android:textColor="#FFFFFF"
                             android:textSize="16sp"/>
+
                         <TextView
+                            android:id="@+id/tv_current_language"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Français"
                             android:textColor="#9DB4D1"
                             android:layout_marginEnd="8dp"/>
-                        <View
-                            android:layout_width="8dp"
-                            android:layout_height="8dp"
-                            android:background="@drawable/dot_inactive"/>
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@android:drawable/ic_menu_directions"
+                            app:tint="#5A5A6B"
+                            android:rotation="90"/>
                     </LinearLayout>
 
                 </LinearLayout>
@@ -288,7 +301,7 @@
                 android:id="@+id/btn_export_csv"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Exporter les données (CSV)"
+                android:text="@string/export_csv"
                 android:textSize="16sp"
                 android:fontFamily="sans-serif-medium"
                 android:textColor="@color/white"
@@ -297,26 +310,27 @@
                 android:layout_marginBottom="16dp"
                 android:textAllCaps="false"
                 app:icon="@drawable/ic_stats"
-                app:iconTint="@color/white"/>
+                app:iconTint="@color/white"
+                app:iconGravity="textStart"/>
 
             <Button
                 android:id="@+id/btn_backup_encrypted"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Sauvegarde Locale (Chiffrée)"
+                android:text="@string/backup_encrypted"
                 android:textSize="16sp"
                 android:fontFamily="sans-serif-medium"
-                android:textColor="@color/white"
+                android:textColor="#1A1A23"
                 android:background="@drawable/primary_button_background"
                 android:backgroundTint="#00E676"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="24dp"
                 android:textAllCaps="false"/>
 
             <Button
                 android:id="@+id/btn_logout"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Déconnexion"
+                android:text="@string/logout"
                 android:textSize="16sp"
                 android:fontFamily="sans-serif-medium"
                 android:textColor="@color/white"
@@ -326,5 +340,4 @@
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

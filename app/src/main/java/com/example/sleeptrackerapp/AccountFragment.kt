@@ -1,6 +1,7 @@
 package com.example.sleeptrackerapp
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -56,14 +57,17 @@ class AccountFragment : Fragment() {
     private lateinit var layoutBedtime: LinearLayout
     private lateinit var layoutWakeup: LinearLayout
 
+    // Langue
+    private lateinit var layoutLanguage: LinearLayout
+    private lateinit var tvCurrentLanguage: TextView
+
     // Contrôles
     private lateinit var switchNotifications: SwitchMaterial
     private lateinit var btnExportCsv: Button
     private lateinit var btnBackupEncrypted: Button
     private lateinit var btnLogout: Button
 
-    // --- DONNÉES LOCALES ---
-    // Heures par défaut
+    // --- DONNÉES LOCALES (Valeurs par défaut) ---
     private var bedTimeHour = 22
     private var bedTimeMinute = 30
     private var wakeUpHour = 7
@@ -78,7 +82,7 @@ class AccountFragment : Fragment() {
             activateAllReminders()
         } else {
             switchNotifications.isChecked = false
-            Toast.makeText(context, "Permission refusée. Les rappels ne fonctionneront pas.", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, getString(R.string.permission_required), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -101,6 +105,7 @@ class AccountFragment : Fragment() {
         initializeViews(view)
         loadUserData()
         loadTimePreferences() // Charger les heures sauvegardées
+        updateLanguageUI()    // Mettre à jour le texte de la langue
 
         setupClickListeners()
 
@@ -119,6 +124,9 @@ class AccountFragment : Fragment() {
         layoutBedtime = view.findViewById(R.id.layout_bedtime)
         layoutWakeup = view.findViewById(R.id.layout_wakeup)
 
+        layoutLanguage = view.findViewById(R.id.layout_language)
+        tvCurrentLanguage = view.findViewById(R.id.tv_current_language)
+
         switchNotifications = view.findViewById(R.id.switch_notifications)
 
         btnExportCsv = view.findViewById(R.id.btn_export_csv)
@@ -134,7 +142,7 @@ class AccountFragment : Fragment() {
 
         // 2. Choix Heure Coucher
         layoutBedtime.setOnClickListener {
-            showTimePicker("Heure de coucher", bedTimeHour, bedTimeMinute) { h, m ->
+            showTimePicker(getString(R.string.bedtime_reminder), bedTimeHour, bedTimeMinute) { h, m ->
                 bedTimeHour = h
                 bedTimeMinute = m
                 saveTimePreferences()
@@ -145,7 +153,7 @@ class AccountFragment : Fragment() {
 
         // 3. Choix Heure Réveil
         layoutWakeup.setOnClickListener {
-            showTimePicker("Heure de réveil", wakeUpHour, wakeUpMinute) { h, m ->
+            showTimePicker(getString(R.string.wakeup_reminder), wakeUpHour, wakeUpMinute) { h, m ->
                 wakeUpHour = h
                 wakeUpMinute = m
                 saveTimePreferences()
@@ -154,7 +162,12 @@ class AccountFragment : Fragment() {
             }
         }
 
-        // 4. Switch Notifications
+        // 4. Choix de la Langue
+        layoutLanguage.setOnClickListener {
+            showLanguageDialog()
+        }
+
+        // 5. Switch Notifications
         switchNotifications.setOnCheckedChangeListener { view, isChecked ->
             if (isChecked) {
                 // Vérifier permission Android 13+
@@ -171,10 +184,10 @@ class AccountFragment : Fragment() {
             }
         }
 
-        // 5. Export CSV
+        // 6. Export CSV
         btnExportCsv.setOnClickListener { exportDataToCsv() }
 
-        // 6. Sauvegarde Chiffrée
+        // 7. Sauvegarde Chiffrée
         btnBackupEncrypted.setOnClickListener { performEncryptedBackup() }
     }
 
@@ -182,10 +195,11 @@ class AccountFragment : Fragment() {
 
     private fun activateAllReminders() {
         val context = requireContext()
+        // Ces fonctions sont dans vos fichiers Worker (SleepReminderWorker.kt, WakeUpWorker.kt, etc.)
         scheduleSleepReminder(context, bedTimeHour, bedTimeMinute)
         scheduleWakeUpReminder(context, wakeUpHour, wakeUpMinute)
         scheduleInactivityCheck(context)
-        Toast.makeText(context, "Rappels activés", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, getString(R.string.reminders_enabled), Toast.LENGTH_SHORT).show()
     }
 
     private fun cancelAllReminders() {
@@ -193,7 +207,7 @@ class AccountFragment : Fragment() {
         cancelSleepReminder(context)
         WorkManager.getInstance(context).cancelUniqueWork("DailyWakeUpReminder")
         WorkManager.getInstance(context).cancelUniqueWork("InactivityCheck")
-        Toast.makeText(context, "Rappels désactivés", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, getString(R.string.reminders_disabled), Toast.LENGTH_SHORT).show()
     }
 
     // --- GESTION DU TEMPS (TIMEPICKER) ---
@@ -214,8 +228,8 @@ class AccountFragment : Fragment() {
     }
 
     private fun updateTimeUI() {
-        tvReminderPref.text = String.format("%02d:%02d", bedTimeHour, bedTimeMinute)
-        tvWakeupPref.text = String.format("%02d:%02d", wakeUpHour, wakeUpMinute)
+        tvReminderPref.text = String.format(Locale.US, "%02d:%02d", bedTimeHour, bedTimeMinute)
+        tvWakeupPref.text = String.format(Locale.US, "%02d:%02d", wakeUpHour, wakeUpMinute)
     }
 
     private fun saveTimePreferences() {
@@ -238,26 +252,55 @@ class AccountFragment : Fragment() {
         updateTimeUI()
     }
 
+    // --- GESTION DE LA LANGUE ---
+
+    private fun updateLanguageUI() {
+        // Utilise la ressource string pour afficher le nom de la langue actuelle (défini dans strings.xml)
+        tvCurrentLanguage.text = getString(R.string.current_language_name)
+    }
+
+    private fun showLanguageDialog() {
+        // Les noms des langues sont "en dur" ici pour que l'utilisateur puisse retrouver sa langue maternelle
+        val languages = arrayOf("English", "Français", "العربية")
+
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle(getString(R.string.language_dialog_title)) // Titre traduit
+        builder.setItems(languages) { _, which ->
+            when (which) {
+                0 -> changeLanguage("en")
+                1 -> changeLanguage("fr")
+                2 -> changeLanguage("ar")
+            }
+        }
+        builder.show()
+    }
+
+    private fun changeLanguage(langCode: String) {
+        // Utilisation de l'helper LocaleHelper (défini précédemment)
+        LocaleHelper.setLocale(requireContext(), langCode)
+        LocaleHelper.restartApp(requireActivity())
+    }
+
     // --- EXPORT CSV ---
 
     private fun exportDataToCsv() {
         val user = auth.currentUser ?: return
-        Toast.makeText(context, "Génération du CSV...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, getString(R.string.csv_generating), Toast.LENGTH_SHORT).show()
 
         firestore.collection("users").document(user.uid).collection("sleep_sessions")
             .orderBy("date", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { documents ->
                 try {
-                    val fileName = "sommeil_export.csv"
+                    val fileName = "sleep_export.csv"
                     val file = File(requireContext().cacheDir, fileName)
                     val writer = FileWriter(file)
 
                     // En-tête CSV
-                    writer.append("Date,Heure,Durée (h),Qualité,Mouvements,Source\n")
+                    writer.append("Date,Time,Duration (h),Quality,Movements,Source\n")
 
-                    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.US)
+                    val timeFormat = SimpleDateFormat("HH:mm", Locale.US)
 
                     for (doc in documents) {
                         val dateMillis = doc.getLong("date") ?: 0L
@@ -266,17 +309,17 @@ class AccountFragment : Fragment() {
                         val duration = doc.getDouble("durationHours") ?: 0.0
                         val quality = doc.getString("qualityText") ?: "N/A"
                         val movements = doc.getLong("movements") ?: 0
-                        val source = doc.getString("source") ?: "Manuel"
+                        val source = doc.getString("source") ?: "Manual"
 
                         writer.append("$dateStr,$timeStr,$duration,$quality,$movements,$source\n")
                     }
                     writer.flush()
                     writer.close()
 
-                    shareFile(file, "text/csv", "Export Données Sommeil")
+                    shareFile(file, "text/csv", getString(R.string.export_csv))
 
                 } catch (e: Exception) {
-                    Toast.makeText(context, "Erreur Export: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, getString(R.string.error_export), Toast.LENGTH_SHORT).show()
                     e.printStackTrace()
                 }
             }
@@ -286,7 +329,7 @@ class AccountFragment : Fragment() {
 
     private fun performEncryptedBackup() {
         val user = auth.currentUser ?: return
-        Toast.makeText(context, "Chiffrement en cours...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, getString(R.string.backup_encrypting), Toast.LENGTH_SHORT).show()
 
         firestore.collection("users").document(user.uid).collection("sleep_sessions")
             .get()
@@ -298,7 +341,7 @@ class AccountFragment : Fragment() {
 
                     // 2. Fichier destination
                     val fileName = "backup_secure_${System.currentTimeMillis()}.enc"
-                    val file = File(requireContext().filesDir, fileName) // Utilisation de filesDir pour sécurité accrue
+                    val file = File(requireContext().filesDir, fileName)
 
                     if(file.exists()) file.delete()
 
@@ -321,10 +364,10 @@ class AccountFragment : Fragment() {
                     outputStream.close()
 
                     // 5. Partage
-                    shareFile(file, "application/octet-stream", "Sauvegarde Chiffrée")
+                    shareFile(file, "application/octet-stream", getString(R.string.backup_encrypted))
 
                 } catch (e: Exception) {
-                    Toast.makeText(context, "Erreur Chiffrement: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                     e.printStackTrace()
                 }
             }
@@ -335,7 +378,6 @@ class AccountFragment : Fragment() {
     private fun shareFile(file: File, mimeType: String, title: String) {
         try {
             // ATTENTION : Nécessite la configuration correcte du FileProvider dans AndroidManifest.xml
-            // Authority doit correspondre à "applicationId + .provider"
             val authority = "${requireContext().packageName}.provider"
 
             val uri = FileProvider.getUriForFile(requireContext(), authority, file)
@@ -349,9 +391,9 @@ class AccountFragment : Fragment() {
             startActivity(Intent.createChooser(intent, title))
 
         } catch (e: IllegalArgumentException) {
-            Toast.makeText(context, "Erreur FileProvider. Vérifiez le Manifest.", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "FileProvider Error. Check Manifest.", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
-            Toast.makeText(context, "Impossible de partager le fichier.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Share failed.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -359,13 +401,13 @@ class AccountFragment : Fragment() {
 
     private fun loadUserData() {
         val user = auth.currentUser
-        tvEmail.text = user?.email ?: "utilisateur@example.com"
+        tvEmail.text = user?.email ?: "user@example.com"
         tvTimezone.text = TimeZone.getDefault().id
 
         if (user != null) {
             firestore.collection("users").document(user.uid).get()
                 .addOnSuccessListener { document ->
-                    tvUsername.text = document.getString("username") ?: "Utilisateur"
+                    tvUsername.text = document.getString("username") ?: "User"
                 }
 
             firestore.collection("users").document(user.uid).collection("goals")

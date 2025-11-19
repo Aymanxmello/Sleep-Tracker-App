@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        LocaleHelper.loadLocale(this)
         setContentView(R.layout.activity_main)
 
         // Initialisation de Firebase

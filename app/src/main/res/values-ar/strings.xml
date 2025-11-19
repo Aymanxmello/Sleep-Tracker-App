@@ -1,47 +1,41 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SleepTracker</string>
-    <string name="dashboard">لوحة القيادة</string>
-    <string name="goals">أهداف</string>
-    <string name="tips">نصائح</string>
-    <string name="account">حسابي</string>
+    <string name="app_name">تتبع النوم</string>
 
-    <string name="last_night_summary">ملخص الليلة الماضية</string>
-    <string name="duration">المدة</string>
-    <string name="quality">الجودة</string>
-    <string name="weekly_trends">اتجاهات الأسبوع</string>
-    <string name="insights">رؤى</string>
-    <string name="add_sleep">إضافة جلسة</string>
+    <string name="menu_dashboard">لوحة المعلومات</string>
+    <string name="menu_goals">الأهداف</string>
+    <string name="menu_account">حسابي</string>
+    <string name="title_account">الملف الشخصي</string>
 
-    <string name="login">تسجيل الدخول</string>
-    <string name="register">إنشاء حساب</string>
-    <string name="email">البريد الإلكتروني</string>
-    <string name="password">كلمة المرور</string>
-    <string name="forgot_password">نسيت كلمة المرور؟</string>
-    <string name="no_account">ليس لديك حساب؟</string>
-    <string name="has_account">لديك حساب بالفعل؟</string>
+    <string name="profile_section">المعلومات الشخصية</string>
+    <string name="daily_goal_label">الهدف اليومي</string>
+    <string name="timezone_label">المنطقة الزمنية</string>
+    <string name="settings_section">الإعدادات</string>
 
-    <string name="define_goal">تحديد هدف</string>
-    <string name="daily_goal_hint">هدف يومي (مثال: 8 ساعات)</string>
-    <string name="save">حفظ</string>
-    <string name="history">سجل</string>
-    <string name="tracking_progress">تتبع التقدم</string>
-    <string name="goal_reached">تم الوصول</string>
-    <string name="goal_not_reached">لم يتم الوصول</string>
+    <string name="bedtime_reminder">وقت النوم</string>
+    <string name="wakeup_reminder">وقت الاستيقاظ</string>
+    <string name="notifications_label">الإشعارات</string>
+    <string name="reminders_enabled">تم تفعيل التذكيرات</string>
+    <string name="reminders_disabled">تم إيقاف التذكيرات</string>
+    <string name="permission_required">الإذن مطلوب للإشعارات</string>
 
-    <string name="settings">إعدادات</string>
-    <string name="notifications">إشعارات</string>
-    <string name="tracking_mode">وضع التتبع</string>
-    <string name="language">لغة</string>
+    <string name="reminder_notification_title">حان وقت النوم! 🌙</string>
+    <string name="reminder_notification_body">استعد لنوم مريح. ابتعد عن الهاتف.</string>
+    <string name="wakeup_notification_title">صباح الخير! ☀️</string>
+    <string name="wakeup_notification_body">حان وقت الاستيقاظ لبدء يومك بنشاط.</string>
+
+    <string name="tracking_mode_label">وضع التتبع</string>
+    <string name="tracking_mode_manual">يدوي</string>
+    <string name="tracking_mode_auto">تلقائي</string>
+
+    <string name="language_label">اللغة</string>
+    <string name="language_dialog_title">اختر اللغة</string>
+    <string name="current_language_name">العربية</string>
+
+    <string name="export_csv">تصدير البيانات (CSV)</string>
+    <string name="backup_encrypted">نسخ احتياطي مشفر</string>
     <string name="logout">تسجيل الخروج</string>
-    <string name="export_data">تصدير البيانات (CSV)</string>
 
-    <string name="sleep_tips_header">نصائح النوم</string>
-    <string name="share">مشاركة</string>
-    <string name="read_article">قراءة المقال</string>
-
-    <string name="start_tracking">بدء التتبع</string>
-    <string name="stop_tracking">إيقاف التتبع</string>
-    <string name="add_manually">إضافة يدوياً</string>
-    <string name="time_elapsed">الوقت المنقضي</string>
+    <string name="csv_generating">جاري إنشاء ملف CSV...</string>
+    <string name="backup_encrypting">جاري تشفير النسخة الاحتياطية...</string>
+    <string name="error_export">فشل التصدير</string>
 </resources>
