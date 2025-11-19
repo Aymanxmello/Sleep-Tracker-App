@@ -24,7 +24,6 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener {
     private lateinit var musicIcon: ImageView
     private lateinit var statsIcon: ImageView
 
-    // Map fragments to positions: 0=Dashboard, 1=Goals, 2=Tips, 3=Account
     private val fragments = listOf(
         DashboardFragment.newInstance(),
         GoalsFragment.newInstance(),

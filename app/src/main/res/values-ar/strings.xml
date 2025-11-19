@@ -1,2 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_name">SleepTracker</string>
+    <string name="dashboard">لوحة القيادة</string>
+    <string name="goals">أهداف</string>
+    <string name="tips">نصائح</string>
+    <string name="account">حسابي</string>
+
+    <string name="last_night_summary">ملخص الليلة الماضية</string>
+    <string name="duration">المدة</string>
+    <string name="quality">الجودة</string>
+    <string name="weekly_trends">اتجاهات الأسبوع</string>
+    <string name="insights">رؤى</string>
+    <string name="add_sleep">إضافة جلسة</string>
+
+    <string name="login">تسجيل الدخول</string>
+    <string name="register">إنشاء حساب</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="forgot_password">نسيت كلمة المرور؟</string>
+    <string name="no_account">ليس لديك حساب؟</string>
+    <string name="has_account">لديك حساب بالفعل؟</string>
+
+    <string name="define_goal">تحديد هدف</string>
+    <string name="daily_goal_hint">هدف يومي (مثال: 8 ساعات)</string>
+    <string name="save">حفظ</string>
+    <string name="history">سجل</string>
+    <string name="tracking_progress">تتبع التقدم</string>
+    <string name="goal_reached">تم الوصول</string>
+    <string name="goal_not_reached">لم يتم الوصول</string>
+
+    <string name="settings">إعدادات</string>
+    <string name="notifications">إشعارات</string>
+    <string name="tracking_mode">وضع التتبع</string>
+    <string name="language">لغة</string>
+    <string name="logout">تسجيل الخروج</string>
+    <string name="export_data">تصدير البيانات (CSV)</string>
+
+    <string name="sleep_tips_header">نصائح النوم</string>
+    <string name="share">مشاركة</string>
+    <string name="read_article">قراءة المقال</string>
+
+    <string name="start_tracking">بدء التتبع</string>
+    <string name="stop_tracking">إيقاف التتبع</string>
+    <string name="add_manually">إضافة يدوياً</string>
+    <string name="time_elapsed">الوقت المنقضي</string>
+</resources>

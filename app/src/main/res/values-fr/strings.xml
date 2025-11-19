@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">SleepTrack</string>
-    <string name="app_subtitle">Suivez votre sommeil</string>
-    <string name="app_logo">Logo de l\'application</string>
-    <string name="background_desc">Image de fond</string>
-</resources>
