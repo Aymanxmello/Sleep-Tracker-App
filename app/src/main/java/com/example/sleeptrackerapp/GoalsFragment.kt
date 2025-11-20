@@ -1,13 +1,18 @@
 package com.example.sleeptrackerapp
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -21,6 +26,7 @@ import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Random
 
 // Data model for a Goal
 data class GoalModel(
@@ -78,7 +84,56 @@ class GoalsFragment : Fragment() {
         // Load data
         fetchGoalHistory()
         updateTrackingProgress()
+
+        // Add Starry Background
+        setupStarryBackground(view)
     }
+
+    // --- STARRY BACKGROUND ANIMATION ---
+    private fun setupStarryBackground(view: View) {
+        val container = view.findViewById<FrameLayout>(R.id.star_container)
+        if (container == null) return
+
+        container.post {
+            val width = container.width
+            val height = container.height
+            val random = Random()
+
+            // Create 50 stars
+            for (i in 0 until 50) {
+                val star = View(context)
+
+                // 1. Shape (White Circle)
+                val drawable = GradientDrawable()
+                drawable.shape = GradientDrawable.OVAL
+                drawable.setColor(Color.WHITE)
+                star.background = drawable
+
+                // 2. Random Size (2dp to 5dp)
+                val density = resources.displayMetrics.density
+                val size = ((2..5).random() * density).toInt()
+                val params = FrameLayout.LayoutParams(size, size)
+
+                // 3. Random Position
+                params.leftMargin = random.nextInt(width)
+                params.topMargin = random.nextInt(height)
+                star.layoutParams = params
+
+                // 4. Add to view
+                container.addView(star)
+
+                // 5. Animation (Fade In/Out)
+                star.alpha = random.nextFloat()
+                val animator = ObjectAnimator.ofFloat(star, "alpha", 0.2f, 1f, 0.2f)
+                animator.duration = (1500..4000).random().toLong()
+                animator.startDelay = (0..2000).random().toLong()
+                animator.repeatCount = ValueAnimator.INFINITE
+                animator.repeatMode = ValueAnimator.REVERSE
+                animator.start()
+            }
+        }
+    }
+    // --------------------------------
 
     private fun setupRecyclerView() {
         adapter = GoalHistoryAdapter(goalsList)
@@ -123,7 +178,6 @@ class GoalsFragment : Fragment() {
         val timestamp = System.currentTimeMillis()
         val dateString = SimpleDateFormat("dd MMM", Locale.getDefault()).format(Date(timestamp))
 
-        // Determine if goal is "reached" based on last sleep data immediately (optional logic)
         val isReached = checkIfGoalReached(duration)
 
         val goalMap = hashMapOf(
@@ -143,7 +197,6 @@ class GoalsFragment : Fragment() {
                     etGoalDuration.text.clear()
                     etQualityTarget.text.clear()
 
-                    // Refresh the list and tracking UI
                     fetchGoalHistory()
                     updateTrackingUI(duration)
                     resetSaveButton()
@@ -171,7 +224,7 @@ class GoalsFragment : Fragment() {
         firestore.collection("users").document(user.uid)
             .collection("goals")
             .orderBy("dateCreated", Query.Direction.DESCENDING)
-            .limit(10) // Show last 10 goals
+            .limit(10)
             .get()
             .addOnSuccessListener { documents ->
                 goalsList.clear()
@@ -188,22 +241,17 @@ class GoalsFragment : Fragment() {
                 }
                 adapter.notifyDataSetChanged()
 
-                // If we have goals, use the latest one to update the "Tracking" section
                 if (goalsList.isNotEmpty()) {
                     updateTrackingUI(goalsList[0].duration)
                 }
             }
-            .addOnFailureListener {
-                // Handle error silently or log
-            }
+            .addOnFailureListener { }
     }
 
     private fun checkLastSleepDuration(): Float {
-        // Fetch the last sleep duration from SharedPreferences
         val sharedPref = requireContext().getSharedPreferences("sleep_data", Context.MODE_PRIVATE)
         val lastDurationStr = sharedPref.getString("last_sleep_duration", "00:00") ?: "00:00"
 
-        // Convert HH:MM to float hours (e.g., "07:30" -> 7.5)
         return try {
             val parts = lastDurationStr.split(":")
             if (parts.size == 2) {
@@ -220,7 +268,6 @@ class GoalsFragment : Fragment() {
 
     private fun checkIfGoalReached(targetDuration: Float): Boolean {
         val lastDuration = checkLastSleepDuration()
-        // Goal is reached if we slept at least 95% of the target
         return lastDuration >= (targetDuration * 0.95f)
     }
 
@@ -233,7 +280,6 @@ class GoalsFragment : Fragment() {
     private fun updateTrackingProgress(targetDuration: Float = 8f) {
         val lastSleepDuration = checkLastSleepDuration()
 
-        // Calculate percentage (capped at 100%)
         var percentage = 0
         if (targetDuration > 0) {
             percentage = ((lastSleepDuration / targetDuration) * 100).toInt()
@@ -242,7 +288,6 @@ class GoalsFragment : Fragment() {
 
         progressBarGoals.progress = percentage
 
-        // Format text
         val sleepFormatted = String.format("%.1fh", lastSleepDuration)
         val targetFormatted = String.format("%.1fh", targetDuration)
 

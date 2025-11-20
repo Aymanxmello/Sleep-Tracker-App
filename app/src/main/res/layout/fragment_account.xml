@@ -6,6 +6,12 @@
     android:layout_height="match_parent"
     android:background="#0A0A0F">
 
+    <FrameLayout
+        android:id="@+id/star_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.8" />
+
     <TextView
         android:id="@+id/title_account"
         android:layout_width="wrap_content"
@@ -31,8 +37,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp"
-            android:paddingBottom="100dp">
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="160dp">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -293,7 +301,6 @@
                             app:tint="#5A5A6B"
                             android:rotation="90"/>
                     </LinearLayout>
-
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

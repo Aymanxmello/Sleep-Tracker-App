@@ -6,6 +6,12 @@
     android:layout_height="match_parent"
     android:background="#0A0A0F">
 
+    <FrameLayout
+        android:id="@+id/star_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.8" />
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -52,6 +58,16 @@
                     android:textColor="@color/white"
                     android:textSize="26sp"
                     android:textStyle="bold"
+                    android:layout_marginBottom="4dp"/>
+
+                <TextView
+                    android:id="@+id/tv_city_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="Loading location..."
+                    android:textColor="#B4B0FF"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif-medium"
                     android:layout_marginBottom="16dp"/>
 
                 <LinearLayout

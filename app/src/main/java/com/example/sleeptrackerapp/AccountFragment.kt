@@ -1,16 +1,21 @@
 package com.example.sleeptrackerapp
 
 import android.Manifest
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -33,6 +38,7 @@ import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Random
 import java.util.TimeZone
 
 class AccountFragment : Fragment() {
@@ -45,35 +51,32 @@ class AccountFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private lateinit var firestore: FirebaseFirestore
 
-    // --- VUES ---
+    // Views
     private lateinit var tvUsername: TextView
     private lateinit var tvEmail: TextView
     private lateinit var tvDailyGoal: TextView
     private lateinit var tvTimezone: TextView
 
-    // Préférences Heures
-    private lateinit var tvReminderPref: TextView // Texte Heure Coucher
-    private lateinit var tvWakeupPref: TextView   // Texte Heure Réveil
+    private lateinit var tvReminderPref: TextView
+    private lateinit var tvWakeupPref: TextView
     private lateinit var layoutBedtime: LinearLayout
     private lateinit var layoutWakeup: LinearLayout
 
-    // Langue
     private lateinit var layoutLanguage: LinearLayout
     private lateinit var tvCurrentLanguage: TextView
 
-    // Contrôles
     private lateinit var switchNotifications: SwitchMaterial
     private lateinit var btnExportCsv: Button
     private lateinit var btnBackupEncrypted: Button
     private lateinit var btnLogout: Button
 
-    // --- DONNÉES LOCALES (Valeurs par défaut) ---
+    // Default Data
     private var bedTimeHour = 22
     private var bedTimeMinute = 30
     private var wakeUpHour = 7
     private var wakeUpMinute = 0
 
-    // --- GESTION PERMISSION (Android 13+) ---
+    // Permission
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -104,12 +107,18 @@ class AccountFragment : Fragment() {
 
         initializeViews(view)
         loadUserData()
-        loadTimePreferences() // Charger les heures sauvegardées
-        updateLanguageUI()    // Mettre à jour le texte de la langue
+        loadTimePreferences()
+        updateLanguageUI()
 
         setupClickListeners()
 
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        // Initialize the starry background animation here
+        setupStarryBackground(view)
     }
 
     private fun initializeViews(view: View) {
@@ -134,13 +143,58 @@ class AccountFragment : Fragment() {
         btnLogout = view.findViewById(R.id.btn_logout)
     }
 
+    // --- NEW FUNCTION FOR STARS ---
+    private fun setupStarryBackground(view: View) {
+        val container = view.findViewById<FrameLayout>(R.id.star_container)
+        if (container == null) return
+
+        // Use post to wait for layout measurement
+        container.post {
+            val width = container.width
+            val height = container.height
+            val random = Random()
+
+            // Create 50 stars
+            for (i in 0 until 50) {
+                val star = View(context)
+
+                // 1. White Circle Shape
+                val drawable = GradientDrawable()
+                drawable.shape = GradientDrawable.OVAL
+                drawable.setColor(Color.WHITE)
+                star.background = drawable
+
+                // 2. Random Size (2dp to 5dp)
+                val density = resources.displayMetrics.density
+                val size = ((2..5).random() * density).toInt()
+                val params = FrameLayout.LayoutParams(size, size)
+
+                // 3. Random Position
+                params.leftMargin = random.nextInt(width)
+                params.topMargin = random.nextInt(height)
+                star.layoutParams = params
+
+                // 4. Add to layout
+                container.addView(star)
+
+                // 5. Animation (Fade In/Out)
+                star.alpha = random.nextFloat()
+                val animator = ObjectAnimator.ofFloat(star, "alpha", 0.2f, 1f, 0.2f)
+                animator.duration = (1500..4000).random().toLong()
+                animator.startDelay = (0..2000).random().toLong()
+                animator.repeatCount = ValueAnimator.INFINITE
+                animator.repeatMode = ValueAnimator.REVERSE
+                animator.start()
+            }
+        }
+    }
+    // -----------------------------
+
     private fun setupClickListeners() {
-        // 1. Déconnexion
         btnLogout.setOnClickListener {
             logoutListener?.onLogoutClicked()
         }
 
-        // 2. Choix Heure Coucher
         layoutBedtime.setOnClickListener {
             showTimePicker(getString(R.string.bedtime_reminder), bedTimeHour, bedTimeMinute) { h, m ->
                 bedTimeHour = h
@@ -151,7 +205,6 @@ class AccountFragment : Fragment() {
             }
         }
 
-        // 3. Choix Heure Réveil
         layoutWakeup.setOnClickListener {
             showTimePicker(getString(R.string.wakeup_reminder), wakeUpHour, wakeUpMinute) { h, m ->
                 wakeUpHour = h
@@ -162,18 +215,15 @@ class AccountFragment : Fragment() {
             }
         }
 
-        // 4. Choix de la Langue
         layoutLanguage.setOnClickListener {
             showLanguageDialog()
         }
 
-        // 5. Switch Notifications
         switchNotifications.setOnCheckedChangeListener { view, isChecked ->
             if (isChecked) {
-                // Vérifier permission Android 13+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                        view.isChecked = false // On décoche en attendant la réponse
+                        view.isChecked = false
                         requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                         return@setOnCheckedChangeListener
                     }
@@ -184,21 +234,15 @@ class AccountFragment : Fragment() {
             }
         }
 
-        // 6. Export CSV
         btnExportCsv.setOnClickListener { exportDataToCsv() }
-
-        // 7. Sauvegarde Chiffrée
         btnBackupEncrypted.setOnClickListener { performEncryptedBackup() }
     }
 
-    // --- GESTION DES RAPPELS (WORKMANAGER) ---
-
     private fun activateAllReminders() {
         val context = requireContext()
-        // Ces fonctions sont dans vos fichiers Worker (SleepReminderWorker.kt, WakeUpWorker.kt, etc.)
         scheduleSleepReminder(context, bedTimeHour, bedTimeMinute)
         scheduleWakeUpReminder(context, wakeUpHour, wakeUpMinute)
-        scheduleInactivityCheck(context)
+        // scheduleInactivityCheck(context) // Uncomment if you have this worker
         Toast.makeText(context, getString(R.string.reminders_enabled), Toast.LENGTH_SHORT).show()
     }
 
@@ -209,8 +253,6 @@ class AccountFragment : Fragment() {
         WorkManager.getInstance(context).cancelUniqueWork("InactivityCheck")
         Toast.makeText(context, getString(R.string.reminders_disabled), Toast.LENGTH_SHORT).show()
     }
-
-    // --- GESTION DU TEMPS (TIMEPICKER) ---
 
     private fun showTimePicker(title: String, hour: Int, minute: Int, onTimeSelected: (Int, Int) -> Unit) {
         val picker = MaterialTimePicker.Builder()
@@ -252,19 +294,14 @@ class AccountFragment : Fragment() {
         updateTimeUI()
     }
 
-    // --- GESTION DE LA LANGUE ---
-
     private fun updateLanguageUI() {
-        // Utilise la ressource string pour afficher le nom de la langue actuelle (défini dans strings.xml)
         tvCurrentLanguage.text = getString(R.string.current_language_name)
     }
 
     private fun showLanguageDialog() {
-        // Les noms des langues sont "en dur" ici pour que l'utilisateur puisse retrouver sa langue maternelle
         val languages = arrayOf("English", "Français", "العربية")
-
         val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle(getString(R.string.language_dialog_title)) // Titre traduit
+        builder.setTitle(getString(R.string.language_dialog_title))
         builder.setItems(languages) { _, which ->
             when (which) {
                 0 -> changeLanguage("en")
@@ -276,12 +313,9 @@ class AccountFragment : Fragment() {
     }
 
     private fun changeLanguage(langCode: String) {
-        // Utilisation de l'helper LocaleHelper (défini précédemment)
         LocaleHelper.setLocale(requireContext(), langCode)
         LocaleHelper.restartApp(requireActivity())
     }
-
-    // --- EXPORT CSV ---
 
     private fun exportDataToCsv() {
         val user = auth.currentUser ?: return
@@ -296,9 +330,7 @@ class AccountFragment : Fragment() {
                     val file = File(requireContext().cacheDir, fileName)
                     val writer = FileWriter(file)
 
-                    // En-tête CSV
                     writer.append("Date,Time,Duration (h),Quality,Movements,Source\n")
-
                     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.US)
                     val timeFormat = SimpleDateFormat("HH:mm", Locale.US)
 
@@ -310,22 +342,16 @@ class AccountFragment : Fragment() {
                         val quality = doc.getString("qualityText") ?: "N/A"
                         val movements = doc.getLong("movements") ?: 0
                         val source = doc.getString("source") ?: "Manual"
-
                         writer.append("$dateStr,$timeStr,$duration,$quality,$movements,$source\n")
                     }
                     writer.flush()
                     writer.close()
-
                     shareFile(file, "text/csv", getString(R.string.export_csv))
-
                 } catch (e: Exception) {
                     Toast.makeText(context, getString(R.string.error_export), Toast.LENGTH_SHORT).show()
-                    e.printStackTrace()
                 }
             }
     }
-
-    // --- SAUVEGARDE CHIFFRÉE (AES-256) ---
 
     private fun performEncryptedBackup() {
         val user = auth.currentUser ?: return
@@ -335,22 +361,16 @@ class AccountFragment : Fragment() {
             .get()
             .addOnSuccessListener { documents ->
                 try {
-                    // 1. Conversion en JSON via Gson
                     val dataList = documents.map { it.data }
                     val jsonString = Gson().toJson(dataList)
-
-                    // 2. Fichier destination
                     val fileName = "backup_secure_${System.currentTimeMillis()}.enc"
                     val file = File(requireContext().filesDir, fileName)
-
                     if(file.exists()) file.delete()
 
-                    // 3. Clé Maître Android Keystore
                     val mainKey = MasterKey.Builder(requireContext())
                         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                         .build()
 
-                    // 4. Chiffrement
                     val encryptedFile = EncryptedFile.Builder(
                         requireContext(),
                         file,
@@ -362,26 +382,17 @@ class AccountFragment : Fragment() {
                     outputStream.write(jsonString.toByteArray(Charsets.UTF_8))
                     outputStream.flush()
                     outputStream.close()
-
-                    // 5. Partage
                     shareFile(file, "application/octet-stream", getString(R.string.backup_encrypted))
-
                 } catch (e: Exception) {
                     Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                    e.printStackTrace()
                 }
             }
     }
 
-    // --- FONCTION UTILITAIRE PARTAGE ---
-
     private fun shareFile(file: File, mimeType: String, title: String) {
         try {
-            // ATTENTION : Nécessite la configuration correcte du FileProvider dans AndroidManifest.xml
             val authority = "${requireContext().packageName}.provider"
-
             val uri = FileProvider.getUriForFile(requireContext(), authority, file)
-
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = mimeType
                 putExtra(Intent.EXTRA_STREAM, uri)
@@ -389,27 +400,20 @@ class AccountFragment : Fragment() {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             startActivity(Intent.createChooser(intent, title))
-
-        } catch (e: IllegalArgumentException) {
-            Toast.makeText(context, "FileProvider Error. Check Manifest.", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
             Toast.makeText(context, "Share failed.", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // --- CHARGEMENT DONNÉES FIREBASE ---
-
     private fun loadUserData() {
         val user = auth.currentUser
         tvEmail.text = user?.email ?: "user@example.com"
         tvTimezone.text = TimeZone.getDefault().id
-
         if (user != null) {
             firestore.collection("users").document(user.uid).get()
                 .addOnSuccessListener { document ->
                     tvUsername.text = document.getString("username") ?: "User"
                 }
-
             firestore.collection("users").document(user.uid).collection("goals")
                 .orderBy("dateCreated", Query.Direction.DESCENDING).limit(1).get()
                 .addOnSuccessListener { docs ->

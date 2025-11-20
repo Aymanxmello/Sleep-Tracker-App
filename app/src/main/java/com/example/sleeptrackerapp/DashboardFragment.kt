@@ -1,13 +1,22 @@
 package com.example.sleeptrackerapp
 
+import android.Manifest
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -18,6 +27,8 @@ import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -29,14 +40,25 @@ import retrofit2.http.GET
 import retrofit2.http.Query as RetrofitQuery
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.abs
 
 // --- DATA MODELS ---
-data class OneCallResponse(val daily: List<DailyWeather>)
-data class DailyWeather(val dt: Long, val sunrise: Long, val sunset: Long, val temp: Temp)
-data class Temp(val day: Double, val night: Double, val eve: Double)
+data class WeatherResponse(
+    val main: Main,
+    val sys: Sys,
+    val dt: Long,
+    val name: String
+)
 
-// Model for internal use in Dashboard
+data class Main(
+    val temp: Double,
+    val humidity: Int
+)
+
+data class Sys(
+    val sunrise: Long,
+    val sunset: Long
+)
+
 data class SleepSessionData(
     val date: Long,
     val dayLabel: String,
@@ -46,12 +68,12 @@ data class SleepSessionData(
 
 // --- WEATHER API ---
 interface WeatherService {
-    @GET("data/2.5/onecall?exclude=minutely,hourly,alerts&units=metric")
-    suspend fun fetchWeather(
+    @GET("data/2.5/weather?units=metric")
+    suspend fun fetchCurrentWeather(
         @RetrofitQuery("lat") lat: Double,
         @RetrofitQuery("lon") lon: Double,
         @RetrofitQuery("appid") apiKey: String
-    ): OneCallResponse
+    ): WeatherResponse
 }
 
 object WeatherApiClient {
@@ -80,10 +102,8 @@ data class DayItem(
 )
 
 class DayAdapter(
-    private val days: List<DayItem>,
-    private val onDaySelected: (DayItem) -> Unit
+    private val days: List<DayItem>
 ) : RecyclerView.Adapter<DayAdapter.DayViewHolder>() {
-
 
     inner class DayViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardView: androidx.cardview.widget.CardView = itemView.findViewById(R.id.cardDay)
@@ -99,8 +119,6 @@ class DayAdapter(
             tvDay.text = day.dayOfMonth
             tvDayName.text = day.dayName
             val context = itemView.context
-
-            // "Today" will be permanently highlighted
             if (day.isSelected) {
                 cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.cyan_accent))
                 tvDay.setTextColor(ContextCompat.getColor(context, R.color.dark_blue_primary))
@@ -112,8 +130,6 @@ class DayAdapter(
             }
         }
     }
-
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DayViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_day, parent, false)
@@ -136,6 +152,7 @@ class DashboardFragment : Fragment() {
     private lateinit var tvSleepQuality: TextView
     private lateinit var rvDays: RecyclerView
     private lateinit var tvSelectedDate: TextView
+    private lateinit var tvCityName: TextView
 
     // Weather Views
     private lateinit var tvTemperature: TextView
@@ -147,13 +164,30 @@ class DashboardFragment : Fragment() {
     private lateinit var tvKpiBest: TextView
     private lateinit var tvKpiWorst: TextView
 
-    // Firebase
+    // Firebase & Location
     private lateinit var auth: FirebaseAuth
     private lateinit var firestore: FirebaseFirestore
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    // Default Location (Paris)
+    private var currentLat: Double = 48.8566
+    private var currentLon: Double = 2.3522
 
     companion object {
         fun newInstance() = DashboardFragment()
     }
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                    permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+            if (granted) {
+                getUserLocation()
+            } else {
+                Toast.makeText(context, "Location denied. Using default city.", Toast.LENGTH_SHORT).show()
+                setupDaySelector()
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -167,16 +201,97 @@ class DashboardFragment : Fragment() {
 
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
         initializeViews(view)
         setupCharts()
         setupClickListeners()
-        setupDaySelector()
+
+        // 1. START STARS
+        setupStarryBackground(view)
+
+        checkLocationPermissions()
     }
+
+    // --- STARRY BACKGROUND FUNCTION ---
+    private fun setupStarryBackground(view: View) {
+        val container = view.findViewById<FrameLayout>(R.id.star_container)
+        if (container == null) return
+
+        container.post {
+            val width = container.width
+            val height = container.height
+            val random = Random()
+
+            // Create 50 stars
+            for (i in 0 until 50) {
+                val star = View(context)
+
+                val drawable = GradientDrawable()
+                drawable.shape = GradientDrawable.OVAL
+                drawable.setColor(Color.WHITE)
+                star.background = drawable
+
+                // Random Size (2dp to 5dp)
+                val density = resources.displayMetrics.density
+                val size = ((2..5).random() * density).toInt()
+                val params = FrameLayout.LayoutParams(size, size)
+
+                // Random Position
+                params.leftMargin = random.nextInt(width)
+                params.topMargin = random.nextInt(height)
+                star.layoutParams = params
+
+                container.addView(star)
+
+                // Animation
+                star.alpha = random.nextFloat()
+                val animator = ObjectAnimator.ofFloat(star, "alpha", 0.2f, 1f, 0.2f)
+                animator.duration = (1500..4000).random().toLong()
+                animator.startDelay = (0..2000).random().toLong()
+                animator.repeatCount = ValueAnimator.INFINITE
+                animator.repeatMode = ValueAnimator.REVERSE
+                animator.start()
+            }
+        }
+    }
+    // --------------------------------
 
     override fun onResume() {
         super.onResume()
         loadDataFromFirestore()
+    }
+
+    private fun checkLocationPermissions() {
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            getUserLocation()
+        } else {
+            requestPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun getUserLocation() {
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    currentLat = location.latitude
+                    currentLon = location.longitude
+                }
+                setupDaySelector()
+            }
+            .addOnFailureListener {
+                setupDaySelector()
+            }
     }
 
     private fun initializeViews(view: View) {
@@ -188,6 +303,7 @@ class DashboardFragment : Fragment() {
 
         rvDays = view.findViewById(R.id.rv_days)
         tvSelectedDate = view.findViewById(R.id.tv_selected_date)
+        tvCityName = view.findViewById(R.id.tv_city_name)
         tvTemperature = view.findViewById(R.id.tv_temperature)
         tvSunriseTime = view.findViewById(R.id.tv_sunrise_time)
         tvSunsetTime = view.findViewById(R.id.tv_sunset_time)
@@ -199,22 +315,21 @@ class DashboardFragment : Fragment() {
 
     private fun setupDaySelector() {
         val daysList = generateDaysAroundToday()
-        if (daysList.size >= 3) updateDayDisplay(daysList[2])
 
         rvDays.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        rvDays.adapter = DayAdapter(daysList) { selectedDay ->
-            updateDayDisplay(selectedDay)
-        }
+        rvDays.adapter = DayAdapter(daysList)
+
         rvDays.scrollToPosition(0)
+
+        updateDayDisplay(daysList[2])
     }
 
     private fun generateDaysAroundToday(): List<DayItem> {
         val days = mutableListOf<DayItem>()
-        val calendar = Calendar.getInstance() // Starts at "Now"
+        val calendar = Calendar.getInstance()
         val dayOfMonthFormat = SimpleDateFormat("dd", Locale.getDefault())
         val dayNameFormat = SimpleDateFormat("EEE", Locale.getDefault())
 
-        // Move back 2 days to start the loop
         calendar.add(Calendar.DAY_OF_YEAR, -2)
 
         for (i in 0 until 5) {
@@ -224,10 +339,9 @@ class DashboardFragment : Fragment() {
                     dayOfMonth = dayOfMonthFormat.format(dateCopy.time),
                     dayName = dayNameFormat.format(dateCopy.time),
                     date = dateCopy,
-                    isSelected = (i == 2) // Index 2 is "Today" (the middle one)
+                    isSelected = (i == 2)
                 )
             )
-            // Move to next day
             calendar.add(Calendar.DAY_OF_YEAR, 1)
         }
         return days
@@ -238,44 +352,32 @@ class DashboardFragment : Fragment() {
         val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
         tvSelectedDate.text = dateFormat.format(dayItem.date.time)
 
-        // Fetch Weather
-        val API_KEY = "be59bd86a75aabbc2b8f06205ad19082"
-        val LATITUDE = 48.8566
-        val LONGITUDE = 2.3522
+        // --- WEATHER FETCHING ---
+        val API_KEY = "70b11520bda551f50bd6a599271e69bf"
 
+        tvCityName.text = "Chargement..."
         tvTemperature.text = "..."
         tvSunsetTime.text = "..."
         tvSunriseTime.text = "..."
 
         lifecycleScope.launch {
             try {
-                val response = WeatherApiClient.service.fetchWeather(LATITUDE, LONGITUDE, API_KEY)
-                val selectedDayStartTimestamp = dayItem.date.apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis / 1000L
+                val response = WeatherApiClient.service.fetchCurrentWeather(currentLat, currentLon, API_KEY)
 
-                val dailyData = response.daily.find { daily ->
-                    abs(daily.dt - selectedDayStartTimestamp) < 86400
-                }
+                tvCityName.text = "📍 ${response.name}"
+                tvTemperature.text = String.format("%.1f°C", response.main.temp)
+                tvSunsetTime.text = "🌅 ${convertUnixToTime(response.sys.sunset)}"
+                tvSunriseTime.text = "🌄 ${convertUnixToTime(response.sys.sunrise)}"
 
-                if (dailyData != null) {
-                    tvTemperature.text = String.format("%.1f°C", dailyData.temp.day)
-                    tvSunsetTime.text = "🌅 ${convertUnixToTime(dailyData.sunset)}"
-                    tvSunriseTime.text = "🌄 ${convertUnixToTime(dailyData.sunrise)}"
-                } else {
-                    tvTemperature.text = "N/A"
-                }
             } catch (e: Exception) {
-                tvTemperature.text = "Err"
+                tvCityName.text = "📍 Inconnu"
+                tvTemperature.text = "N/A"
             }
         }
     }
 
     private fun setupCharts() {
-        // 1. Bar Chart
+        // Bar Chart
         sleepChart.setDrawBarShadow(false)
         sleepChart.setDrawValueAboveBar(true)
         sleepChart.description.isEnabled = false
@@ -294,7 +396,7 @@ class DashboardFragment : Fragment() {
         leftAxis.textColor = Color.WHITE
         leftAxis.axisMinimum = 0f
 
-        // 2. Line Chart
+        // Line Chart
         qualityChart.description.isEnabled = false
         qualityChart.legend.isEnabled = false
         qualityChart.setPinchZoom(false)
@@ -316,7 +418,6 @@ class DashboardFragment : Fragment() {
     private fun loadDataFromFirestore() {
         val user = auth.currentUser ?: return
 
-        // Fetch last 7 records
         firestore.collection("users").document(user.uid)
             .collection("sleep_sessions")
             .orderBy("date", Query.Direction.ASCENDING)
@@ -337,24 +438,22 @@ class DashboardFragment : Fragment() {
 
                 updateDashboardWithRealData(sessionList)
             }
-            .addOnFailureListener {
-                // Optionally show error
-            }
 
-        // Also update the Summary Card from SharedPreferences for immediate "Last Night" info
-        val sharedPref = requireContext().getSharedPreferences("sleep_data", Context.MODE_PRIVATE)
-        val lastDuration = sharedPref.getString("last_sleep_duration", "00:00")
-        val lastQuality = sharedPref.getString("last_sleep_quality", "--")
+        if (context != null) {
+            val sharedPref = requireContext().getSharedPreferences("sleep_data", Context.MODE_PRIVATE)
+            val lastDuration = sharedPref.getString("last_sleep_duration", "00:00")
+            val lastQuality = sharedPref.getString("last_sleep_quality", "--")
 
-        tvSleepDuration.text = formatDurationForDisplay(lastDuration)
-        tvSleepQuality.text = lastQuality
+            tvSleepDuration.text = formatDurationForDisplay(lastDuration)
+            tvSleepQuality.text = lastQuality
+        }
     }
 
     @SuppressLint("SetTextI18n")
     private fun updateDashboardWithRealData(sessions: List<SleepSessionData>) {
-        if (sessions.isEmpty()) return
+        if (sessions.isEmpty() || context == null) return
 
-        // 1. Populate BarChart
+        // BarChart
         val barEntries = sessions.mapIndexed { index, session ->
             BarEntry(index.toFloat(), session.durationHours)
         }
@@ -378,7 +477,7 @@ class DashboardFragment : Fragment() {
         }
         sleepChart.invalidate()
 
-        // 2. Populate LineChart
+        // LineChart
         val lineEntries = sessions.mapIndexed { index, session ->
             Entry(index.toFloat(), session.qualityScore.toFloat())
         }
@@ -391,7 +490,6 @@ class DashboardFragment : Fragment() {
         lineDataSet.valueTextSize = 12f
         lineDataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
         lineDataSet.setDrawFilled(true)
-        // Use transparent color or custom drawable for fill
         lineDataSet.fillColor = ContextCompat.getColor(requireContext(), R.color.cyan_accent)
         lineDataSet.fillAlpha = 50
 
@@ -404,7 +502,7 @@ class DashboardFragment : Fragment() {
         }
         qualityChart.invalidate()
 
-        // 3. Calculate KPIs
+        // KPIs
         val avgDuration = sessions.map { it.durationHours }.average()
         val avgH = avgDuration.toInt()
         val avgM = ((avgDuration - avgH) * 60).toInt()
@@ -429,12 +527,8 @@ class DashboardFragment : Fragment() {
 
     private fun setupClickListeners() {
         fabAddSleep.setOnClickListener {
-            showAddSleepDialog()
+            val dialog = SleepTrackingDialogFragment()
+            dialog.show(childFragmentManager, "SleepTrackingDialog")
         }
-    }
-
-    private fun showAddSleepDialog() {
-        val dialog = SleepTrackingDialogFragment()
-        dialog.show(childFragmentManager, "SleepTrackingDialog")
     }
 }
