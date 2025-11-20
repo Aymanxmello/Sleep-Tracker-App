@@ -54,14 +54,14 @@
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:padding="16dp"
-                    android:src="@drawable/menu"/>
+                    android:src="@drawable/apps"/>
 
                 <ImageView
                     android:id="@+id/bellIcon"
                     android:layout_width="60dp"
                     android:layout_height="60dp"
-                    android:padding="16dp"
-                    android:src="@drawable/target"/>
+                    android:padding="14dp"
+                    android:src="@drawable/tr"/>
 
                 <ImageView
                     android:id="@+id/musicIcon"

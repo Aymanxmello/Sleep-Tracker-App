@@ -5,6 +5,11 @@
     <string name="menu_account">Account</string>
     <string name="title_account">My Account</string>
     <string name="profile_section">Profile</string>
+
+    <string name="location_format">%s</string>
+    <string name="sunrise_format">%s</string>
+    <string name="sunset_format">%s</string>
+
     <string name="daily_goal_label">Daily Goal</string>
     <string name="timezone_label">Timezone</string>
     <string name="settings_section">Settings</string>
@@ -32,6 +37,8 @@
     <string name="error_export">Export failed</string>
     <string name="background_desc">Background image</string>
     <string name="app_subtitle">Track your sleep, improve your life</string>
+
+
 
     <string name="login_title">Login</string>
     <string name="register_title">Create an account</string>

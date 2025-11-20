@@ -68,7 +68,8 @@
                     android:textColor="#B4B0FF"
                     android:textSize="16sp"
                     android:fontFamily="sans-serif-medium"
-                    android:layout_marginBottom="16dp"/>
+                    android:layout_marginBottom="16dp"
+                    app:drawableStartCompat="@drawable/ic_location"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -96,9 +97,10 @@
                         android:id="@+id/tv_sunset_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        tools:text="🌅 --:--"
+                        tools:text=" --:--"
                         android:textColor="#9DB4D1"
-                        android:textSize="16sp"/>
+                        android:textSize="16sp"
+                        app:drawableStartCompat="@drawable/ic_sunset"/>
 
                     <View
                         android:layout_width="1dp"
@@ -111,9 +113,10 @@
                         android:id="@+id/tv_sunrise_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        tools:text="🌄 --:--"
+                        tools:text=" --:--"
                         android:textColor="#9DB4D1"
-                        android:textSize="16sp"/>
+                        android:textSize="16sp"
+                        app:drawableStartCompat="@drawable/ic_sunrise"/>
                 </LinearLayout>
             </LinearLayout>
 

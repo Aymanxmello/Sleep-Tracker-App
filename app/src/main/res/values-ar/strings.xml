@@ -86,6 +86,11 @@
     <string name="status_reached">تم الوصول</string>
     <string name="status_not_reached">لم يتم الوصول</string>
     <string name="sleep_tips_title">نصائح النوم</string>
+
+    <string name="location_format">%s</string>
+    <string name="sunrise_format">%s</string>
+    <string name="sunset_format">%s</string>
+
     <string name="tip_category_tip">نصيحة</string>
     <string name="tip_category_article">مقال</string>
     <string name="tip_category_video">فيديو</string>

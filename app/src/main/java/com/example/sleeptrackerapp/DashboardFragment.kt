@@ -358,12 +358,12 @@ class DashboardFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val response = WeatherApiClient.service.fetchCurrentWeather(currentLat, currentLon, API_KEY)
-                tvCityName.text = "📍 ${response.name}"
+                tvCityName.text = "${response.name}"
                 tvTemperature.text = String.format("%.1f°C", response.main.temp)
-                tvSunsetTime.text = "🌅 ${convertUnixToTime(response.sys.sunset)}"
-                tvSunriseTime.text = "🌄 ${convertUnixToTime(response.sys.sunrise)}"
+                tvSunsetTime.text = " ${convertUnixToTime(response.sys.sunset)}"
+                tvSunriseTime.text = " ${convertUnixToTime(response.sys.sunrise)}"
             } catch (e: Exception) {
-                tvCityName.text = "📍 Inconnu"
+                tvCityName.text = "Inconnu"
                 tvTemperature.text = "N/A"
             }
         }

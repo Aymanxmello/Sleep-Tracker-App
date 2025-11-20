@@ -86,6 +86,11 @@
     <string name="status_reached">Atteint</string>
     <string name="status_not_reached">Non atteint</string>
     <string name="sleep_tips_title">Conseils sommeil</string>
+
+    <string name="location_format">%s</string>
+    <string name="sunrise_format">%s</string>
+    <string name="sunset_format">%s</string>
+
     <string name="tip_category_tip">CONSEIL</string>
     <string name="tip_category_article">ARTICLE</string>
     <string name="tip_category_video">VIDÉO</string>
