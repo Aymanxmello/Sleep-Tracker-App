@@ -15,4 +15,6 @@
     <color name="purple_accent">#9B5DE5</color>
     <color name="text_secondary">#9DB4D1</color>
     <color name="black">#000000</color>
+    <color name="card_glass_background">#CC1A1A23</color>
+    <color name="glass_stroke">#33FFFFFF</color>
 </resources>

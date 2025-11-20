@@ -106,11 +106,12 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="#1A1A23"
+                app:cardBackgroundColor="@color/card_glass_background"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/glass_stroke"
                 android:layout_marginBottom="24dp">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -154,6 +155,16 @@
                 android:textSize="20sp"
                 android:fontFamily="sans-serif-medium"
                 android:layout_marginBottom="16dp"/>
+
+            <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/lottie_empty_goals"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"
+                app:lottie_rawRes="@raw/goals"
+                app:lottie_autoPlay="true"
+                app:lottie_loop="true"
+                android:visibility="gone"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_goal_history"

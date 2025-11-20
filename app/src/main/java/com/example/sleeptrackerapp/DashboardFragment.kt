@@ -49,15 +49,8 @@ data class WeatherResponse(
     val name: String
 )
 
-data class Main(
-    val temp: Double,
-    val humidity: Int
-)
-
-data class Sys(
-    val sunrise: Long,
-    val sunset: Long
-)
+data class Main(val temp: Double, val humidity: Int)
+data class Sys(val sunrise: Long, val sunset: Long)
 
 data class SleepSessionData(
     val date: Long,
@@ -111,6 +104,7 @@ class DayAdapter(
         val tvDayName: TextView = itemView.findViewById(R.id.tvDayName)
 
         init {
+            // Items are visual only (non-clickable)
             itemView.isClickable = false
             itemView.isFocusable = false
         }
@@ -119,14 +113,23 @@ class DayAdapter(
             tvDay.text = day.dayOfMonth
             tvDayName.text = day.dayName
             val context = itemView.context
+
             if (day.isSelected) {
                 cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.cyan_accent))
                 tvDay.setTextColor(ContextCompat.getColor(context, R.color.dark_blue_primary))
                 tvDayName.setTextColor(ContextCompat.getColor(context, R.color.dark_blue_primary))
+
+                // Scale UP Effect for "Today"
+                itemView.scaleX = 1.0f
+                itemView.scaleY = 1.0f
             } else {
                 cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.dark_blue_tertiary))
                 tvDay.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
                 tvDayName.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+
+                // Reset Scale
+                itemView.scaleX = 0.9f
+                itemView.scaleY = 0.9f
             }
         }
     }
@@ -207,13 +210,19 @@ class DashboardFragment : Fragment() {
         setupCharts()
         setupClickListeners()
 
-        // 1. START STARS
+        // 1. Starry Background
         setupStarryBackground(view)
 
+        // 2. Location Check
         checkLocationPermissions()
     }
 
-    // --- STARRY BACKGROUND FUNCTION ---
+    override fun onResume() {
+        super.onResume()
+        loadDataFromFirestore()
+    }
+
+    // --- STARRY BACKGROUND ANIMATION ---
     private fun setupStarryBackground(view: View) {
         val container = view.findViewById<FrameLayout>(R.id.star_container)
         if (container == null) return
@@ -226,7 +235,6 @@ class DashboardFragment : Fragment() {
             // Create 50 stars
             for (i in 0 until 50) {
                 val star = View(context)
-
                 val drawable = GradientDrawable()
                 drawable.shape = GradientDrawable.OVAL
                 drawable.setColor(Color.WHITE)
@@ -236,8 +244,6 @@ class DashboardFragment : Fragment() {
                 val density = resources.displayMetrics.density
                 val size = ((2..5).random() * density).toInt()
                 val params = FrameLayout.LayoutParams(size, size)
-
-                // Random Position
                 params.leftMargin = random.nextInt(width)
                 params.topMargin = random.nextInt(height)
                 star.layoutParams = params
@@ -254,12 +260,6 @@ class DashboardFragment : Fragment() {
                 animator.start()
             }
         }
-    }
-    // --------------------------------
-
-    override fun onResume() {
-        super.onResume()
-        loadDataFromFirestore()
     }
 
     private fun checkLocationPermissions() {
@@ -315,12 +315,9 @@ class DashboardFragment : Fragment() {
 
     private fun setupDaySelector() {
         val daysList = generateDaysAroundToday()
-
         rvDays.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         rvDays.adapter = DayAdapter(daysList)
-
         rvDays.scrollToPosition(0)
-
         updateDayDisplay(daysList[2])
     }
 
@@ -329,7 +326,6 @@ class DashboardFragment : Fragment() {
         val calendar = Calendar.getInstance()
         val dayOfMonthFormat = SimpleDateFormat("dd", Locale.getDefault())
         val dayNameFormat = SimpleDateFormat("EEE", Locale.getDefault())
-
         calendar.add(Calendar.DAY_OF_YEAR, -2)
 
         for (i in 0 until 5) {
@@ -352,7 +348,6 @@ class DashboardFragment : Fragment() {
         val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
         tvSelectedDate.text = dateFormat.format(dayItem.date.time)
 
-        // --- WEATHER FETCHING ---
         val API_KEY = "70b11520bda551f50bd6a599271e69bf"
 
         tvCityName.text = "Chargement..."
@@ -363,12 +358,10 @@ class DashboardFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val response = WeatherApiClient.service.fetchCurrentWeather(currentLat, currentLon, API_KEY)
-
                 tvCityName.text = "📍 ${response.name}"
                 tvTemperature.text = String.format("%.1f°C", response.main.temp)
                 tvSunsetTime.text = "🌅 ${convertUnixToTime(response.sys.sunset)}"
                 tvSunriseTime.text = "🌄 ${convertUnixToTime(response.sys.sunrise)}"
-
             } catch (e: Exception) {
                 tvCityName.text = "📍 Inconnu"
                 tvTemperature.text = "N/A"
@@ -435,7 +428,6 @@ class DashboardFragment : Fragment() {
                     val dayLabel = dayFormat.format(Date(dateMillis))
                     sessionList.add(SleepSessionData(dateMillis, dayLabel, durationHours, qualityScore))
                 }
-
                 updateDashboardWithRealData(sessionList)
             }
 
@@ -453,7 +445,7 @@ class DashboardFragment : Fragment() {
     private fun updateDashboardWithRealData(sessions: List<SleepSessionData>) {
         if (sessions.isEmpty() || context == null) return
 
-        // BarChart
+        // 1. BarChart
         val barEntries = sessions.mapIndexed { index, session ->
             BarEntry(index.toFloat(), session.durationHours)
         }
@@ -466,7 +458,6 @@ class DashboardFragment : Fragment() {
                 return String.format("%.1fh", value)
             }
         }
-
         val barData = BarData(barDataSet)
         barData.barWidth = 0.6f
         sleepChart.data = barData
@@ -477,7 +468,7 @@ class DashboardFragment : Fragment() {
         }
         sleepChart.invalidate()
 
-        // LineChart
+        // 2. LineChart (With Gradient Fill)
         val lineEntries = sessions.mapIndexed { index, session ->
             Entry(index.toFloat(), session.qualityScore.toFloat())
         }
@@ -489,9 +480,16 @@ class DashboardFragment : Fragment() {
         lineDataSet.valueTextColor = Color.WHITE
         lineDataSet.valueTextSize = 12f
         lineDataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
+
+        // Gradient Logic
         lineDataSet.setDrawFilled(true)
-        lineDataSet.fillColor = ContextCompat.getColor(requireContext(), R.color.cyan_accent)
-        lineDataSet.fillAlpha = 50
+        try {
+            // Ensure you created chart_gradient.xml, otherwise fallback to color
+            lineDataSet.fillDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.chart_gradient)
+        } catch (e: Exception) {
+            lineDataSet.fillColor = ContextCompat.getColor(requireContext(), R.color.cyan_accent)
+            lineDataSet.fillAlpha = 50
+        }
 
         val lineData = LineData(lineDataSet)
         qualityChart.data = lineData
@@ -502,7 +500,7 @@ class DashboardFragment : Fragment() {
         }
         qualityChart.invalidate()
 
-        // KPIs
+        // 3. KPIs
         val avgDuration = sessions.map { it.durationHours }.average()
         val avgH = avgDuration.toInt()
         val avgM = ((avgDuration - avgH) * 60).toInt()
