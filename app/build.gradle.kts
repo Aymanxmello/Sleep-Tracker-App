@@ -9,9 +9,16 @@ kotlin {
 }
 
 
+
 android {
+    val myApiKey: String = System.getenv("API_KEY")
+    print (myApiKey)
     namespace = "com.example.sleeptrackerapp"
     compileSdk = 36
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.example.sleeptrackerapp"
@@ -19,6 +26,9 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "API_KEY", myApiKey)
+
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

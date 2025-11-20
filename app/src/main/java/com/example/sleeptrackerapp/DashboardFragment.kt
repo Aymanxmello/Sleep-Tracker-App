@@ -35,6 +35,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
+import com.example.sleeptrackerapp.BuildConfig
+
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query as RetrofitQuery
@@ -348,7 +350,7 @@ class DashboardFragment : Fragment() {
         val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
         tvSelectedDate.text = dateFormat.format(dayItem.date.time)
 
-        val API_KEY = "70b11520bda551f50bd6a599271e69bf"
+        val API_KEY = BuildConfig.API_KEY
 
         tvCityName.text = "Chargement..."
         tvTemperature.text = "..."
