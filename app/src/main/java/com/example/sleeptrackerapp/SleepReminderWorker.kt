@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit
 class SleepReminderWorker(val context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override suspend fun doWork(): Result {
         sendSleepReminderNotification()
         return Result.success()
@@ -32,17 +33,15 @@ class SleepReminderWorker(val context: Context, params: WorkerParameters) :
         val notificationId = 1001
 
         // Création du canal de notification (Android 8+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Rappels de sommeil"
-            val descriptionText = "Rappels pour l'heure du coucher"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(channelId, name, importance).apply {
-                description = descriptionText
-            }
-            val notificationManager: NotificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+        val name = "Rappels de sommeil"
+        val descriptionText = "Rappels pour l'heure du coucher"
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel = NotificationChannel(channelId, name, importance).apply {
+            description = descriptionText
         }
+        val notificationManager: NotificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
 
         // Intent pour ouvrir l'application
         val intent = Intent(context, MainActivity::class.java).apply {
