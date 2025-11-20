@@ -104,6 +104,10 @@ class GoalsFragment : Fragment() {
                 return@setOnClickListener
             }
 
+            // Disable button to prevent double clicks
+            btnSaveGoal.isEnabled = false
+            btnSaveGoal.text = "Enregistrement..."
+
             saveGoalToFirestore(duration, quality)
         }
     }
@@ -112,6 +116,7 @@ class GoalsFragment : Fragment() {
         val user = auth.currentUser
         if (user == null) {
             Toast.makeText(context, "Utilisateur non connecté", Toast.LENGTH_SHORT).show()
+            resetSaveButton()
             return
         }
 
@@ -119,7 +124,6 @@ class GoalsFragment : Fragment() {
         val dateString = SimpleDateFormat("dd MMM", Locale.getDefault()).format(Date(timestamp))
 
         // Determine if goal is "reached" based on last sleep data immediately (optional logic)
-        // For now, we default to false or check against current data
         val isReached = checkIfGoalReached(duration)
 
         val goalMap = hashMapOf(
@@ -134,17 +138,30 @@ class GoalsFragment : Fragment() {
             .collection("goals")
             .add(goalMap)
             .addOnSuccessListener {
-                Toast.makeText(context, "Objectif enregistré !", Toast.LENGTH_SHORT).show()
-                etGoalDuration.text.clear()
-                etQualityTarget.text.clear()
+                if (isAdded && context != null) {
+                    Toast.makeText(context, "Objectif enregistré !", Toast.LENGTH_SHORT).show()
+                    etGoalDuration.text.clear()
+                    etQualityTarget.text.clear()
 
-                // Refresh the list and tracking UI
-                fetchGoalHistory()
-                updateTrackingUI(duration)
+                    // Refresh the list and tracking UI
+                    fetchGoalHistory()
+                    updateTrackingUI(duration)
+                    resetSaveButton()
+                }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(context, "Erreur: ${e.message}", Toast.LENGTH_SHORT).show()
+                if (isAdded && context != null) {
+                    Toast.makeText(context, "Erreur: ${e.message}", Toast.LENGTH_SHORT).show()
+                    resetSaveButton()
+                }
             }
+    }
+
+    private fun resetSaveButton() {
+        if (isAdded && context != null) {
+            btnSaveGoal.isEnabled = true
+            btnSaveGoal.text = getString(R.string.btn_save)
+        }
     }
 
     @SuppressLint("NotifyDataSetChanged")

@@ -11,9 +11,7 @@ import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.*
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
@@ -30,14 +28,13 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
     private lateinit var btnStartManual: MaterialButton
     private lateinit var btnAddManual: MaterialButton
     private lateinit var tvCurrentTime: TextView
-    private lateinit var tvSensorStatus: TextView // Nouveau TextView pour le statut
     private lateinit var btnClose: ImageButton
 
     private lateinit var timer: CountDownTimer
     private var isTracking = false
     private var startTimeMillis: Long = 0
 
-    // Capteurs
+    // Sensors
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
     private var movementCount = 0
@@ -54,11 +51,9 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
     ): View? {
         val view = inflater.inflate(R.layout.dialog_sleep_tracking, container, false)
 
-        // Initialisation Firebase
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
 
-        // Initialisation Capteurs
         sensorManager = requireContext().getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
@@ -81,9 +76,6 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
-
-        // Garder l'écran allumé pendant le suivi si nécessaire (optionnel)
-        // dialog?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     private fun initializeViews(view: View) {
@@ -94,8 +86,6 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
         tvCurrentTime = view.findViewById(R.id.tv_current_time)
         btnClose = view.findViewById(R.id.btn_close)
 
-        // On ajoute dynamiquement un statut pour les capteurs si non présent dans le XML
-        // (Idéalement, ajoutez un TextView dans le XML, ici on utilise tvCurrentTime pour afficher l'info si besoin)
         updateCurrentTime()
     }
 
@@ -129,27 +119,28 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
         }
     }
 
-    // --- LOGIQUE DE SUIVI AUTOMATIQUE (CAPTEURS) ---
+    // --- AUTOMATIC TRACKING LOGIC ---
 
     private fun startSleepTracking() {
         isTracking = true
-        movementCount = 0 // Réinitialiser les mouvements
+        movementCount = 0
 
         btnStartManual.text = "Arrêter le suivi"
         btnStartManual.setBackgroundColor(requireContext().getColor(android.R.color.holo_red_dark))
 
-        // Désactiver les champs manuels
+        // Clear the field and disable input while tracking
+        etSleepDuration.setText("")
         etSleepDuration.isEnabled = false
+        etSleepDuration.hint = "Suivi en cours..."
+
         spinnerSleepQuality.isEnabled = false
         btnAddManual.isEnabled = false
-        etSleepDuration.setText("Suivi en cours...")
 
-        // Démarrer Timer et Capteurs
         startTimeMillis = System.currentTimeMillis()
         startTimer()
         startSensorTracking()
 
-        Toast.makeText(requireContext(), "Suivi auto démarré. Posez le téléphone.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "Suivi auto démarré.", Toast.LENGTH_SHORT).show()
     }
 
     private fun stopSleepTracking() {
@@ -162,32 +153,41 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
         stopTimer()
         stopSensorTracking()
 
-        // Calcul de la durée
+        // --- FIX: CALCULATE AND POPULATE DURATION ---
         val elapsedTimeMillis = endTimeMillis - startTimeMillis
         val totalSeconds = (elapsedTimeMillis / 1000).toInt()
-        val hours = totalSeconds / 3600
-        val minutes = (totalSeconds % 3600) / 60
+
+        var hours = totalSeconds / 3600
+        var minutes = (totalSeconds % 3600) / 60
+
+        // FORCE 1 MINUTE if test is short (so it doesn't show 00:00)
+        if (totalSeconds > 0 && hours == 0 && minutes == 0) {
+            minutes = 1
+        }
+
         val durationString = String.format("%02d:%02d", hours, minutes)
 
+        // Set the text in the EditText
         etSleepDuration.setText(durationString)
+
+        // Re-enable fields so user can click "Add"
         etSleepDuration.isEnabled = true
+        etSleepDuration.hint = getString(R.string.duration_hint)
         btnAddManual.isEnabled = true
         spinnerSleepQuality.isEnabled = true
 
-        // --- ANALYSE AUTOMATIQUE DE la QUALITÉ ---
-        // Logique simple : Plus il y a de mouvements par heure, moins bonne est la qualité
+        // Auto-detect quality based on movements
         val movementsPerHour = if (hours > 0) movementCount / hours else movementCount
-
         val autoQualityIndex = when {
-            movementsPerHour < 5 -> 0 // Excellente (peu de mouvements)
-            movementsPerHour < 15 -> 1 // Bonne
-            movementsPerHour < 30 -> 2 // Moyenne
-            movementsPerHour < 50 -> 3 // Mauvaise
-            else -> 4 // Très mauvaise
+            movementsPerHour < 5 -> 0
+            movementsPerHour < 15 -> 1
+            movementsPerHour < 30 -> 2
+            movementsPerHour < 50 -> 3
+            else -> 4
         }
-
         spinnerSleepQuality.setSelection(autoQualityIndex)
-        Toast.makeText(requireContext(), "Qualité détectée : ${spinnerSleepQuality.selectedItem} ($movementCount mvts)", Toast.LENGTH_LONG).show()
+
+        Toast.makeText(requireContext(), "Suivi arrêté. Durée: $durationString", Toast.LENGTH_SHORT).show()
     }
 
     private fun startSensorTracking() {
@@ -206,31 +206,24 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
             val y = event.values[1]
             val z = event.values[2]
 
-            // Calcul de l'accélération (gravité incluse ~9.8)
             val gX = x / SensorManager.GRAVITY_EARTH
             val gY = y / SensorManager.GRAVITY_EARTH
             val gZ = z / SensorManager.GRAVITY_EARTH
             val gForce = sqrt(gX * gX + gY * gY + gZ * gZ)
 
-            // Seuil de détection de mouvement (1.0 = statique, > 1.1 = mouvement)
             if (gForce > 1.1f) {
                 val now = System.currentTimeMillis()
-                // Debounce: compter un mouvement max toutes les 500ms
                 if (now - lastMovementTime > 500) {
                     movementCount++
                     lastMovementTime = now
-                    // Optionnel : Mettre à jour l'UI pour montrer que le capteur fonctionne
-                    // tvCurrentTime.text = "Mouvements détectés: $movementCount"
                 }
             }
         }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // Non utilisé
-    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) { }
 
-    // --- FIN LOGIQUE CAPTEURS ---
+    // --- TIMER ---
 
     private fun startTimer() {
         timer = object : CountDownTimer(Long.MAX_VALUE, 1000) {
@@ -254,6 +247,8 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
         updateCurrentTime()
     }
 
+    // --- MANUAL ENTRY ---
+
     private fun addManualSleepEntry() {
         val duration = etSleepDuration.text.toString()
         val quality = spinnerSleepQuality.selectedItem.toString()
@@ -267,6 +262,11 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
             return
         }
 
+        // Disable buttons immediately to prevent double-click or "not working" feeling
+        btnAddManual.isEnabled = false
+        btnAddManual.text = "..."
+        btnStartManual.isEnabled = false
+
         saveSleepData(duration, quality)
     }
 
@@ -278,10 +278,10 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
         val user = auth.currentUser
         if (user == null) {
             Toast.makeText(context, "Erreur: Non connecté", Toast.LENGTH_SHORT).show()
+            resetButtons()
             return
         }
 
-        // Sauvegarde locale (SharedPreferences)
         val sharedPref = requireContext().getSharedPreferences("sleep_data", Context.MODE_PRIVATE)
         sharedPref.edit()
             .putString("last_sleep_date", SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()))
@@ -289,13 +289,11 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
             .putString("last_sleep_quality", qualityStr)
             .apply()
 
-        // Conversion de la durée
         val parts = durationStr.split(":")
         val hours = parts[0].toFloat()
         val minutes = parts[1].toFloat()
         val durationFloat = hours + (minutes / 60f)
 
-        // Score de qualité
         val qualityScore = when(qualityStr) {
             "Excellente" -> 100
             "Bonne" -> 80
@@ -304,7 +302,6 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
             else -> 20
         }
 
-        // Ajout d'un champ "source" pour savoir si c'était auto ou manuel
         val source = if (movementCount > 0) "Capteurs" else "Manuel"
 
         val sleepSession = hashMapOf(
@@ -321,12 +318,25 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
             .collection("sleep_sessions")
             .add(sleepSession)
             .addOnSuccessListener {
-                Toast.makeText(context, "Session enregistrée ($source) !", Toast.LENGTH_SHORT).show()
-                dismiss()
+                if (context != null) {
+                    Toast.makeText(context, "Session enregistrée !", Toast.LENGTH_SHORT).show()
+                    dismiss()
+                }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(context, "Erreur de sauvegarde: ${e.message}", Toast.LENGTH_SHORT).show()
+                if (context != null) {
+                    Toast.makeText(context, "Erreur: ${e.message}", Toast.LENGTH_SHORT).show()
+                    resetButtons()
+                }
             }
+    }
+
+    private fun resetButtons() {
+        if (context != null) {
+            btnAddManual.isEnabled = true
+            btnAddManual.text = getString(R.string.btn_add_manual)
+            btnStartManual.isEnabled = true
+        }
     }
 
     private fun updateCurrentTime() {

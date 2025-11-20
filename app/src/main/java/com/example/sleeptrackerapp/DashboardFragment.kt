@@ -84,7 +84,6 @@ class DayAdapter(
     private val onDaySelected: (DayItem) -> Unit
 ) : RecyclerView.Adapter<DayAdapter.DayViewHolder>() {
 
-    private var selectedPosition = days.indexOfFirst { it.isSelected }
 
     inner class DayViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardView: androidx.cardview.widget.CardView = itemView.findViewById(R.id.cardDay)
@@ -92,18 +91,16 @@ class DayAdapter(
         val tvDayName: TextView = itemView.findViewById(R.id.tvDayName)
 
         init {
-            itemView.setOnClickListener {
-                val position = adapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    selectNewDay(position)
-                }
-            }
+            itemView.isClickable = false
+            itemView.isFocusable = false
         }
 
         fun bind(day: DayItem) {
             tvDay.text = day.dayOfMonth
             tvDayName.text = day.dayName
             val context = itemView.context
+
+            // "Today" will be permanently highlighted
             if (day.isSelected) {
                 cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.cyan_accent))
                 tvDay.setTextColor(ContextCompat.getColor(context, R.color.dark_blue_primary))
@@ -116,18 +113,7 @@ class DayAdapter(
         }
     }
 
-    private fun selectNewDay(position: Int) {
-        if (selectedPosition != position) {
-            if (selectedPosition != RecyclerView.NO_POSITION) {
-                days[selectedPosition].isSelected = false
-                notifyItemChanged(selectedPosition)
-            }
-            selectedPosition = position
-            days[selectedPosition].isSelected = true
-            notifyItemChanged(selectedPosition)
-            onDaySelected(days[position])
-        }
-    }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DayViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_day, parent, false)
@@ -224,10 +210,13 @@ class DashboardFragment : Fragment() {
 
     private fun generateDaysAroundToday(): List<DayItem> {
         val days = mutableListOf<DayItem>()
-        val calendar = Calendar.getInstance()
+        val calendar = Calendar.getInstance() // Starts at "Now"
         val dayOfMonthFormat = SimpleDateFormat("dd", Locale.getDefault())
         val dayNameFormat = SimpleDateFormat("EEE", Locale.getDefault())
+
+        // Move back 2 days to start the loop
         calendar.add(Calendar.DAY_OF_YEAR, -2)
+
         for (i in 0 until 5) {
             val dateCopy = calendar.clone() as Calendar
             days.add(
@@ -235,9 +224,10 @@ class DashboardFragment : Fragment() {
                     dayOfMonth = dayOfMonthFormat.format(dateCopy.time),
                     dayName = dayNameFormat.format(dateCopy.time),
                     date = dateCopy,
-                    isSelected = (i == 2)
+                    isSelected = (i == 2) // Index 2 is "Today" (the middle one)
                 )
             )
+            // Move to next day
             calendar.add(Calendar.DAY_OF_YEAR, 1)
         }
         return days
