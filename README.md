@@ -14,10 +14,6 @@
 - [✨ Features](#-features)
 - [📱 App Screenshots](#-app-screenshots)
 - [🛠️ Tech Stack](#-tech-stack)
-- [🚀 Getting Started](#-getting-started)
-- [📂 Project Structure](#-project-structure)
-- [🤝 How to Contribute](#-how-to-contribute)
-- [📫 Author](#-author)
 
 ---
 
