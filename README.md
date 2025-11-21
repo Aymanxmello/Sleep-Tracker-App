@@ -40,12 +40,12 @@
 <div align="center">
   <table>
     <tr>
-      <td align="center"><b>Splash</b><br>Auto Sensor & Timer</td>
+      <td align="center"><b>Splash</b><br>Welcome</td>
       <td align="center"><b>Dashboard</b><br>View Stats & Weather</td>
     </tr>
     <tr>
       <td><img src="screenshots/splash.jpeg" width="250" alt="Tracking Screen" /></td>
-      <td><img src=".screenshots/dashboard.jpeg" width="250" alt="Dashboard Screen" /></td>
+      <td><img src="screenshots/dashboard.jpeg" width="250" alt="Dashboard Screen" /></td>
     </tr>
     <tr>
       <td align="center"><b>Goals</b><br>Set Targets & History</td>
