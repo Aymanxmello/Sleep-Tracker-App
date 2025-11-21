@@ -6,6 +6,14 @@
     <string name="title_account">My Account</string>
     <string name="profile_section">Profile</string>
 
+    <string-array name="sleep_quality_array">
+        <item>@string/quality_excellent</item>
+        <item>@string/quality_good</item>
+        <item>@string/quality_average</item>
+        <item>@string/quality_poor</item>
+        <item>@string/quality_very_poor</item>
+    </string-array>
+
     <string name="location_format">%s</string>
     <string name="sunrise_format">%s</string>
     <string name="sunset_format">%s</string>
