@@ -40,25 +40,24 @@
 <div align="center">
   <table>
     <tr>
+      <td align="center"><b>Splash</b><br>Auto Sensor & Timer</td>
       <td align="center"><b>Dashboard</b><br>View Stats & Weather</td>
-      <td align="center"><b>Sleep Tracking</b><br>Auto Sensor & Timer</td>
     </tr>
     <tr>
-      <td><img src=".screenshots/dashboard.png" width="250" alt="Dashboard Screen" /></td>
-      <td><img src="screenshots/tracking.png" width="250" alt="Tracking Screen" /></td>
+      <td><img src="screenshots/splash.jpeg" width="250" alt="Tracking Screen" /></td>
+      <td><img src=".screenshots/dashboard.jpeg" width="250" alt="Dashboard Screen" /></td>
     </tr>
     <tr>
       <td align="center"><b>Goals</b><br>Set Targets & History</td>
       <td align="center"><b>Tips</b><br>Learn Better Habits</td>
     </tr>
     <tr>
-      <td><img src="screenshots/goals.png" width="250" alt="Goals Screen" /></td>
-      <td><img src="screenshots/tips.png" width="250" alt="Tips Screen" /></td>
+      <td><img src="screenshots/goals.jpeg" width="250" alt="Goals Screen" /></td>
+      <td><img src="screenshots/tips.jpeg" width="250" alt="Tips Screen" /></td>
     </tr>
   </table>
 </div>
 
-> *Note: Replace `screenshots/...` with your actual screenshot paths.*
 
 ---
 
