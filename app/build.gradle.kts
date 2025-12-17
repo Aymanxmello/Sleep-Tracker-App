@@ -13,7 +13,7 @@ kotlin {
 android {
     val myApiKey: String = System.getenv("API_KEY")
     print (myApiKey)
-    namespace = "com.example.sleeptrackerapp"
+    namespace = "com.aymenzemrani.sleeptrackerapp"
     compileSdk = 36
 
     buildFeatures {
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.sleeptrackerapp"
+        applicationId = "com.aymenzemrani.sleeptrackerapp"
         minSdk = 29
         targetSdk = 36
         versionCode = 1
@@ -41,6 +41,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
 
@@ -66,6 +69,8 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.navigation.fragment)
+    implementation("androidx.fragment:fragment-ktx:1.8.1")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.viewpager2:viewpager2:${libs.versions.viewpager2.get()}")
     implementation("com.airbnb.android:lottie:${libs.versions.lottie.get()}")
 

@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.wear"
+    namespace = "com.aymenzemrani.wear"
     compileSdk = 36
 
     defaultConfig {

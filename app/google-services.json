@@ -7,6 +7,35 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:830170928284:android:9da7b13bb856d08a504959",
+        "android_client_info": {
+          "package_name": "com.aymenzemrani.sleeptrackerapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "830170928284-25pmqo2fke10p9sq20cj9i536t7oed37.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTnb5dDObn_zNE3eGbQTHIC2Fq4PQgab0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "830170928284-25pmqo2fke10p9sq20cj9i536t7oed37.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:830170928284:android:1cc13e9c927bc2b0504959",
         "android_client_info": {
           "package_name": "com.example.sleeptrackerapp"
