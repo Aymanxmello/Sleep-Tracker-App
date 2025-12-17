@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#1A1A23"
+    android:background="@drawable/dialog_rounded_bg"
     android:padding="24dp">
 
     <RelativeLayout

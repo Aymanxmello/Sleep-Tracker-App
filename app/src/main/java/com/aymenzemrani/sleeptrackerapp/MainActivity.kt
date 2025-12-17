@@ -21,6 +21,7 @@ import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -66,6 +67,13 @@ class MainActivity : AppCompatActivity(), AccountFragment.LogoutListener, DataCl
         moonIcon.post {
             moveBackgroundTo(moonIcon, animate = false)
             updateIconColors()
+            // Subscribe to "all_users" topic for general announcements
+            FirebaseMessaging.getInstance().subscribeToTopic("all_users")
+                .addOnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        // Handle failure if needed, usually silent
+                    }
+                }
         }
     }
 

@@ -34,6 +34,10 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
     private var isTracking = false
     private var startTimeMillis: Long = 0
 
+    // New properties for post-tracking selection
+    private var tempDurationString: String = ""
+    private var isWaitingForQualitySelection = false
+
     // Sensors
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
@@ -90,10 +94,34 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
     }
 
     private fun setupSpinner() {
-        val qualityOptions = arrayOf("Excellente", "Bonne", "Moyenne", "Mauvaise", "Très mauvaise")
+        val qualityOptions = arrayOf(
+            "Sélectionnez la qualité",
+            "Excellente",
+            "Bonne",
+            "Moyenne",
+            "Mauvaise",
+            "Très mauvaise"
+        )
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, qualityOptions)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerSleepQuality.adapter = adapter
+
+        spinnerSleepQuality.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                if (isWaitingForQualitySelection && position != 0) {
+                    val selectedQuality = qualityOptions[position]
+                    saveSleepData(tempDurationString, selectedQuality)
+                    isWaitingForQualitySelection = false
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
     }
 
     private fun setupClickListeners() {
@@ -123,15 +151,16 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
 
     private fun startSleepTracking() {
         isTracking = true
+        isWaitingForQualitySelection = false // Reset state
         movementCount = 0
 
         btnStartManual.text = "Arrêter le suivi"
         btnStartManual.setBackgroundColor(requireContext().getColor(android.R.color.holo_red_dark))
 
         // Clear the field and disable input while tracking
-        etSleepDuration.setText("")
+        etSleepDuration.setText("00:00:00")
         etSleepDuration.isEnabled = false
-        etSleepDuration.hint = "Suivi en cours..."
+        // Removed: etSleepDuration.hint = "Suivi en cours..."
 
         spinnerSleepQuality.isEnabled = false
         btnAddManual.isEnabled = false
@@ -166,31 +195,23 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
         }
 
         val durationString = String.format("%02d:%02d", hours, minutes)
+        tempDurationString = durationString
+        etSleepDuration.setText(durationString)
 
-        // --- Auto-detect quality based on movements ---
-        val movementsPerHour = if (hours > 0) movementCount / hours else movementCount
-        val autoQualityIndex = when {
-            movementsPerHour < 5 -> 0
-            movementsPerHour < 15 -> 1
-            movementsPerHour < 30 -> 2
-            movementsPerHour < 50 -> 3
-            else -> 4
-        }
+        // Enable spinner and wait for selection
+        spinnerSleepQuality.isEnabled = true
+        spinnerSleepQuality.setSelection(0) // Select "Sélectionnez la qualité"
+        isWaitingForQualitySelection = true
 
-        // Get quality string
-        val qualityOptions = arrayOf("Excellente", "Bonne", "Moyenne", "Mauvaise", "Très mauvaise")
-        val qualityString = qualityOptions[autoQualityIndex]
+        Toast.makeText(
+            requireContext(),
+            "Veuillez sélectionner la qualité pour enregistrer.",
+            Toast.LENGTH_LONG
+        ).show()
 
-        // --- Save Automatically ---
-        Toast.makeText(requireContext(), "Suivi arrêté. Enregistrement auto...", Toast.LENGTH_SHORT)
-            .show()
-
-        // Disable buttons
+        // Disable Start/Add buttons while waiting
         btnAddManual.isEnabled = false
         btnStartManual.isEnabled = false
-
-        // Save directly
-        saveSleepData(durationString, qualityString)
     }
 
     private fun startSensorTracking() {
@@ -236,7 +257,10 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
                 val hours = totalSeconds / 3600
                 val minutes = (totalSeconds % 3600) / 60
                 val secs = totalSeconds % 60
-                tvCurrentTime.text = String.format("Temps écoulé: %02d:%02d:%02d", hours, minutes, secs)
+
+                val timeString = String.format("%02d:%02d:%02d", hours, minutes, secs)
+                tvCurrentTime.text = "Temps écoulé: $timeString"
+                etSleepDuration.setText(timeString)
             }
             override fun onFinish() { }
         }
@@ -254,7 +278,14 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
 
     private fun addManualSleepEntry() {
         val duration = etSleepDuration.text.toString()
+        val qualityPosition = spinnerSleepQuality.selectedItemPosition
         val quality = spinnerSleepQuality.selectedItem.toString()
+
+        if (qualityPosition == 0) {
+            Toast.makeText(context, "Veuillez sélectionner une qualité valide", Toast.LENGTH_SHORT)
+                .show()
+            return
+        }
 
         if (duration.isEmpty()) {
             etSleepDuration.error = "Requis"
@@ -302,7 +333,8 @@ class SleepTrackingDialogFragment : DialogFragment(), SensorEventListener {
             "Bonne" -> 80
             "Moyenne" -> 60
             "Mauvaise" -> 40
-            else -> 20
+            "Très mauvaise" -> 20
+            else -> 0 // Fallback
         }
 
         val source = if (movementCount > 0) "Capteurs" else "Manuel"

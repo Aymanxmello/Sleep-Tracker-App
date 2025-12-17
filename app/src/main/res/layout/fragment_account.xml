@@ -67,14 +67,21 @@
 
                     <TextView
                         android:id="@+id/tv_username"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Chargement..."
                         android:textColor="#FFFFFF"
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:gravity="center"
-                        android:layout_marginBottom="4dp"/>
+                        android:layout_marginBottom="4dp"
+                        android:layout_gravity="center_horizontal"
+                        android:drawablePadding="8dp"
+                        app:drawableEndCompat="@android:drawable/ic_menu_edit"
+                        app:drawableTint="#B4B0FF"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground" />
 
                     <TextView
                         android:id="@+id/tv_email"

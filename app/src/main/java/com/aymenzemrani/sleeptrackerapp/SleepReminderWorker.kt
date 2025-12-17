@@ -1,99 +1,81 @@
 package com.aymenzemrani.sleeptrackerapp
 
-import android.Manifest
-import android.app.NotificationChannel
-import android.app.NotificationManager
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import androidx.annotation.RequiresPermission
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.work.CoroutineWorker
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.WorkerParameters
+import android.os.Build
+import android.widget.Toast
 import java.util.Calendar
-import java.util.concurrent.TimeUnit
 
-class SleepReminderWorker(val context: Context, params: WorkerParameters) :
-    CoroutineWorker(context, params) {
-
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    override suspend fun doWork(): Result {
-        sendSleepReminderNotification()
-        return Result.success()
-    }
-
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    private fun sendSleepReminderNotification() {
-        val channelId = "sleep_reminders"
-        val notificationId = 1001
-
-        // Création du canal de notification (Android 8+)
-        val name = "Rappels de sommeil"
-        val descriptionText = "Rappels pour l'heure du coucher"
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
-        val channel = NotificationChannel(channelId, name, importance).apply {
-            description = descriptionText
-        }
-        val notificationManager: NotificationManager =
-            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
-
-        // Intent pour ouvrir l'application
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(
-            context, 0, intent, PendingIntent.FLAG_IMMUTABLE
-        )
-
-        // Construction de la notification "Pré-sommeil"
-        val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_moon)
-            .setContentTitle("Il est temps de dormir ! 🌙")
-            .setContentText("Préparez-vous pour une bonne nuit de sommeil. Éloignez les écrans.")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-
-        try {
-            NotificationManagerCompat.from(context).notify(notificationId, builder.build())
-        } catch (e: SecurityException) {
-            // Gérer les permissions ici
-        }
-    }
-}
-
-// Fonction pour programmer le rappel quotidien
+// Replaced WorkManager with AlarmManager for exact timing
 fun scheduleSleepReminder(context: Context, hour: Int, minute: Int) {
-    val workManager = WorkManager.getInstance(context)
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val intent = Intent(context, BedtimeReceiver::class.java)
+
+    val pendingIntent = PendingIntent.getBroadcast(
+        context,
+        1001, // ID for Bedtime
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
 
     val now = Calendar.getInstance()
     val target = Calendar.getInstance().apply {
         set(Calendar.HOUR_OF_DAY, hour)
         set(Calendar.MINUTE, minute)
         set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
         if (before(now)) {
             add(Calendar.DAY_OF_YEAR, 1)
         }
     }
 
-    val initialDelay = target.timeInMillis - now.timeInMillis
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    target.timeInMillis,
+                    pendingIntent
+                )
+            } else {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    target.timeInMillis,
+                    pendingIntent
+                )
+            }
+        } else {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                target.timeInMillis,
+                pendingIntent
+            )
+        }
 
-    val reminderRequest = PeriodicWorkRequestBuilder<SleepReminderWorker>(24, TimeUnit.HOURS)
-        .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
-        .build()
+        // Feedback
+        val dateFormat = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+        Toast.makeText(
+            context,
+            "Rappel coucher réglé pour ${dateFormat.format(target.time)}",
+            Toast.LENGTH_SHORT
+        ).show()
 
-    workManager.enqueueUniquePeriodicWork(
-        "DailySleepReminder",
-        ExistingPeriodicWorkPolicy.UPDATE,
-        reminderRequest
-    )
+    } catch (e: SecurityException) {
+        e.printStackTrace()
+        Toast.makeText(context, "Erreur permission rappel", Toast.LENGTH_SHORT).show()
+    }
 }
 
 fun cancelSleepReminder(context: Context) {
-    WorkManager.getInstance(context).cancelUniqueWork("DailySleepReminder")
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val intent = Intent(context, BedtimeReceiver::class.java)
+    val pendingIntent = PendingIntent.getBroadcast(
+        context,
+        1001,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+    alarmManager.cancel(pendingIntent)
 }

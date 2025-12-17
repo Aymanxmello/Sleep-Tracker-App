@@ -11,10 +11,14 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.net.Uri
+import android.app.AlarmManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -195,8 +199,31 @@ class AccountFragment : Fragment() {
             logoutListener?.onLogoutClicked()
         }
 
+        tvUsername.setOnClickListener {
+            showEditNameDialog()
+        }
+
         layoutBedtime.setOnClickListener {
             showTimePicker(getString(R.string.bedtime_reminder), bedTimeHour, bedTimeMinute) { h, m ->
+                // Check permission for exact alarm (same as WakeUp)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val alarmManager =
+                        requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                    if (!alarmManager.canScheduleExactAlarms()) {
+                        AlertDialog.Builder(requireContext())
+                            .setTitle("Permission requise")
+                            .setMessage("Pour recevoir le rappel à l'heure exacte, vous devez autoriser l'accès aux alarmes.")
+                            .setPositiveButton("Paramètres") { _, _ ->
+                                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                                intent.data = Uri.parse("package:${requireContext().packageName}")
+                                startActivity(intent)
+                            }
+                            .setNegativeButton("Annuler", null)
+                            .show()
+                        return@showTimePicker
+                    }
+                }
+
                 bedTimeHour = h
                 bedTimeMinute = m
                 saveTimePreferences()
@@ -207,6 +234,25 @@ class AccountFragment : Fragment() {
 
         layoutWakeup.setOnClickListener {
             showTimePicker(getString(R.string.wakeup_reminder), wakeUpHour, wakeUpMinute) { h, m ->
+                // Check for Alarm Permission on Android 12+ (S)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val alarmManager =
+                        requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                    if (!alarmManager.canScheduleExactAlarms()) {
+                        AlertDialog.Builder(requireContext())
+                            .setTitle("Permission requise")
+                            .setMessage("Pour que le réveil sonne à l'heure exacte, vous devez autoriser l'accès aux alarmes et rappels pour cette application.")
+                            .setPositiveButton("Paramètres") { _, _ ->
+                                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                                intent.data = Uri.parse("package:${requireContext().packageName}")
+                                startActivity(intent)
+                            }
+                            .setNegativeButton("Annuler", null)
+                            .show()
+                        return@showTimePicker
+                    }
+                }
+
                 wakeUpHour = h
                 wakeUpMinute = m
                 saveTimePreferences()
@@ -249,7 +295,7 @@ class AccountFragment : Fragment() {
     private fun cancelAllReminders() {
         val context = requireContext()
         cancelSleepReminder(context)
-        WorkManager.getInstance(context).cancelUniqueWork("DailyWakeUpReminder")
+        cancelWakeUpReminder(context)
         WorkManager.getInstance(context).cancelUniqueWork("InactivityCheck")
         Toast.makeText(context, getString(R.string.reminders_disabled), Toast.LENGTH_SHORT).show()
     }
@@ -427,6 +473,55 @@ class AccountFragment : Fragment() {
     override fun onDetach() {
         super.onDetach()
         logoutListener = null
+    }
+
+    private fun showEditNameDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Modifier le nom")
+
+        val input = EditText(requireContext())
+        input.hint = "Nouveau nom"
+        input.setText(tvUsername.text.toString())
+        val container = FrameLayout(requireContext())
+        val params = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        params.leftMargin = 50
+        params.rightMargin = 50
+        input.layoutParams = params
+        container.addView(input)
+        container.setPadding(50, 20, 50, 0)
+
+        builder.setView(container)
+
+        builder.setPositiveButton("Enregistrer") { _, _ ->
+            val newName = input.text.toString().trim()
+            if (newName.isNotEmpty()) {
+                updateUsername(newName)
+            } else {
+                Toast.makeText(requireContext(), "Le nom ne peut pas être vide", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+        builder.setNegativeButton("Annuler") { dialog, _ -> dialog.cancel() }
+
+        builder.show()
+    }
+
+    private fun updateUsername(newName: String) {
+        val user = auth.currentUser ?: return
+
+        tvUsername.text = newName
+
+        firestore.collection("users").document(user.uid)
+            .update("username", newName)
+            .addOnSuccessListener {
+                Toast.makeText(context, "Nom mis à jour !", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(context, "Erreur: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     companion object {

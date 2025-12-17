@@ -24,8 +24,8 @@ android {
         applicationId = "com.aymenzemrani.sleeptrackerapp"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
 
         buildConfigField("String", "API_KEY", myApiKey)
 
@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.messaging)
     // Ajout du support KTX pour Firebase Auth (simplifie l'accès à l'utilisateur)
     implementation("com.google.firebase:firebase-auth-ktx:23.2.1")
 
